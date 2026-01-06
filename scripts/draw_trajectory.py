@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
+from matplotlib.patches import Circle
+from geometry_msgs.msg import Pose, PoseStamped
+import argparse
+import os
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
+from matplotlib.ticker import MaxNLocator
+
+def draw_2D_trajectory(file_name, tx, ty, tz, r):
+    file_path = os.path.normpath(os.path.join(os.getcwd(), file_name))
+
+    # read data from npz file
+    data = np.load(file_path)
+    time = data["time"]
+    x = data["x"]
+    y = data["y"]
+    z = data["z"]
+
+    # adjust for LineCollection
+    points = np.array([y, z]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+    # color map
+    norm = plt.Normalize(time.min(), time.max())
+    lc = LineCollection(segments, cmap="viridis", norm=norm)
+    lc.set_array(time)
+    lc.set_linewidth(2.0)
+
+    # make figure
+    fig, ax = plt.subplots(figsize=(6, 6))
+
+    # trajectory
+    ax.add_collection(lc)
+
+    # target area
+    if ty and tz and r:
+        ty = float(ty)
+        tz = float(tz)
+        r = float(r)
+
+        target_circle = Circle((ty, tz), r, color="C1", alpha=0.2, label="target area")
+        ax.add_patch(target_circle)
+
+    # start and end
+    ax.scatter(y[0], z[0], marker="o", color="black", label="start")
+    ax.scatter(y[-1], z[-1], marker="x", color="black", label="end")
+
+    ax.set_xlabel("y [m]")
+    ax.set_ylabel("z [m]")
+    ax.set_aspect("equal", adjustable="box")
+    ax.grid(True)
+
+    # color bar
+    cbar = plt.colorbar(lc, ax=ax)
+    cbar.set_label("Time [s]")
+
+    ax.legend()
+    plt.tight_layout()
+
+    plt.gca().invert_xaxis()
+    plt.show()
+
+def draw_3D_trajectory(file_name, tx, ty, tz, r):
+    file_path = os.path.normpath(os.path.join(os.getcwd(), file_name))
+
+    # read data from npz file
+    data = np.load(file_path)
+    time = data["time"]
+    x = data["x"]
+    y = data["y"]
+    z = data["z"]
+
+    # adjust for Line3DCollection
+    points = np.array([x, y, z]).T.reshape(-1, 1, 3)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+    # color map
+    norm = plt.Normalize(time.min(), time.max())
+    lc = Line3DCollection(segments, cmap="viridis", norm=norm, linewidth=2.0)
+    lc.set_array(time[:-1])
+
+    # make figure
+    fig = plt.figure(figsize=(7, 6))
+    ax = fig.add_subplot(111, projection="3d")
+    ax.add_collection(lc)
+
+    # start and end
+    ax.scatter(x[0], y[0], z[0], color="black", marker="o", label="start")
+    ax.scatter(x[-1], y[-1], z[-1], color="black", marker="x", label="end")
+
+    # target area
+    if tx and ty and tz and r:
+        tx = float(tx)
+        ty = float(ty)
+        tz = float(tz)
+        r = float(r)
+
+        # target area on yz-plane
+        theta = np.linspace(0, 2*np.pi, 60)
+        radius = np.linspace(0, r, 30)
+        Theta, R = np.meshgrid(theta, radius)
+        y_disk = ty + R * np.cos(Theta)
+        z_disk = tz + R * np.sin(Theta)
+
+        # place the circle at x = target x
+        x_disk = np.full_like(y_disk, tx)
+
+        ax.plot_surface(x_disk, y_disk, z_disk, color="C1", alpha=0.2, linewidth=0, shade=False)
+
+    ax.set_xlabel("x [m]")
+    ax.set_ylabel("y [m]")
+    ax.set_zlabel("z [m]")
+
+    ax.xaxis.set_major_locator(MaxNLocator(5))
+    ax.yaxis.set_major_locator(MaxNLocator(5))
+    ax.zaxis.set_major_locator(MaxNLocator(5))
+
+    # color bar
+    cbar = plt.colorbar(lc, ax=ax)
+    cbar.set_label("Time [s]")
+
+    ax.legend()
+    plt.tight_layout()
+
+    # display range
+    display_range = np.array([x.max()-x.min(), y.max()-y.min(), z.max()-z.min()]).max() * 0.5
+    mx = (x.max()+x.min()) * 0.5
+    my = (y.max()+y.min()) * 0.5
+    mz = (z.max()+z.min()) * 0.5
+    ax.set_xlim(mx - display_range, mx + display_range)
+    ax.set_ylim(my - display_range, my + display_range)
+    ax.set_zlim(mz - display_range, mz + display_range)
+    ax.set_box_aspect([1, 1, 1])
+    plt.show()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file_name", help="rosbag file")
+    parser.add_argument("-m", "--mode", help="trajectory generate mode(2:2D, 3:3D)")
+    parser.add_argument("-x", "--target_x", help="target x position")
+    parser.add_argument("-y", "--target_y", help="target y position")
+    parser.add_argument("-z", "--target_z", help="target z position")
+    parser.add_argument("-r", "--radius", help="target radius")
+    args = parser.parse_args()
+    file_name = args.file_name
+    mode = args.mode
+    if not mode:
+        print("input mode value")
+    mode = int(mode)
+    x = args.target_x
+    y = args.target_y
+    z = args.target_z
+    r = args.radius
+    if mode == 2:
+        draw_2D_trajectory(file_name, x, y, z, r)
+    if mode == 3:
+        draw_3D_trajectory(file_name, x, y, z, r)
+    else:
+        print("invalid mode")

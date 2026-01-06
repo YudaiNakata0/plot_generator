@@ -49,7 +49,7 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
 
     # save xyz data
     if start_time and end_time:
-        name = "data/endeffector_pose_xyz_" + "[" + str(int(start_time)) + "-" + str(int(end_time)) + "]" + file_name + ".npz"
+        name = "data/endeffector_pose_xyz_" + "[" + str(round(start_time)) + "-" + str(round(end_time)) + "]" + file_name + ".npz"
     else:
         name = "data/endeffector_pose_xyz_" + file_name + ".npz"
     name = name.replace("bags/", "")
