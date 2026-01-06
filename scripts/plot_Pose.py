@@ -47,6 +47,15 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
         z = z[mask]
         time -= time[0]
 
+    # save xyz data
+    if start_time and end_time:
+        name = "data/endeffector_pose_xyz_" + "[" + str(int(start_time)) + "-" + str(int(end_time)) + "]" + file_name + ".npz"
+    else:
+        name = "data/endeffector_pose_xyz_" + file_name + ".npz"
+    name = name.replace("bags/", "")
+    name = name.replace(".bag", "")
+    np.savez(name, time=time, x=x, y=y, z=z)
+
     # graph
     fig_number = 3 - int(ox is not None) - int(oy is not None) - int(oz is not None)
     print(fig_number)
