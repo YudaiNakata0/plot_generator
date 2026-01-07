@@ -9,7 +9,7 @@ import os
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from matplotlib.ticker import MaxNLocator
 
-def draw_2D_trajectory(file_name, tx, ty, tz, r):
+def draw_2D_trajectory(file_name, tx, ty, tz, r, angled, axis):
     file_path = os.path.normpath(os.path.join(os.getcwd(), file_name))
 
     # read data from npz file
@@ -20,7 +20,10 @@ def draw_2D_trajectory(file_name, tx, ty, tz, r):
     z = data["z"]
 
     # adjust for LineCollection
-    points = np.array([y, z]).T.reshape(-1, 1, 2)
+    if axis == "x":
+        points = np.array([y, z]).T.reshape(-1, 1, 2)
+    elif axis == "y":
+        points = np.array([x, z]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
     # color map
@@ -35,35 +38,75 @@ def draw_2D_trajectory(file_name, tx, ty, tz, r):
     # trajectory
     ax.add_collection(lc)
 
-    # target area
-    if ty and tz and r:
-        ty = float(ty)
-        tz = float(tz)
-        r = float(r)
+    if axis == "x":
+        # target area
+        if ty and tz and r:
+            ty = float(ty)
+            tz = float(tz)
+            r = float(r)
 
-        target_circle = Circle((ty, tz), r, color="C1", alpha=0.2, label="target area")
-        ax.add_patch(target_circle)
+            target_circle = Circle((ty, tz), r, color="C1", alpha=0.2, label="target area")
+            ax.add_patch(target_circle)
 
-    # start and end
-    ax.scatter(y[0], z[0], marker="o", color="black", label="start")
-    ax.scatter(y[-1], z[-1], marker="x", color="black", label="end")
+        # start and end
+        ax.scatter(y[0], z[0], marker="o", color="black", label="start")
+        ax.scatter(y[-1], z[-1], marker="x", color="black", label="end")
 
-    ax.set_xlabel("y [m]")
-    ax.set_ylabel("z [m]")
-    ax.set_aspect("equal", adjustable="box")
-    ax.grid(True)
+        ax.set_xlabel("y [m]")
+        ax.set_ylabel("z [m]")
+        ax.set_aspect("equal", adjustable="box")
+        ax.grid(True)
 
-    # color bar
-    cbar = plt.colorbar(lc, ax=ax)
-    cbar.set_label("Time [s]")
+        # color bar
+        cbar = plt.colorbar(lc, ax=ax)
+        cbar.set_label("Time [s]")
 
-    ax.legend()
-    plt.tight_layout()
+        ax.legend()
+        plt.tight_layout()
 
-    plt.gca().invert_xaxis()
-    plt.show()
+        plt.gca().invert_xaxis()
+        plt.show()
 
-def draw_3D_trajectory(file_name, tx, ty, tz, r):
+    elif axis == "y":
+        # target area
+        if tx and tz and r:
+            tx = float(tx)
+            tz = float(tz)
+            r = float(r)
+
+            if angled:
+                plt.plot([tx+np.sin(0.2)*r, tx-np.sin(0.2)*r], [tz-np.cos(0.2)*r, tz+np.cos(0.2)*r], color="C1", alpha=0.2, label="target_area")
+            else:
+                plt.plot([tx, tx], [tz-r, tz+r], color="C1", alpha=0.2, label="target_area")
+
+        # start and end
+        ax.scatter(x[0], z[0], marker="o", color="black", label="start")
+        ax.scatter(x[-1], z[-1], marker="x", color="black", label="end")
+
+        ax.set_xlabel("x [m]")
+        ax.set_ylabel("z [m]")
+        ax.set_aspect("equal", adjustable="box")
+        ax.grid(True)
+
+        # color bar
+        cbar = plt.colorbar(lc, ax=ax)
+        cbar.set_label("Time [s]")
+
+        ax.legend()
+        plt.tight_layout()
+
+        # display range
+        # display_range = np.array([x.max()-x.min(), z.max()-z.min()]).max() * 0.5 + 0.001
+        display_range = (x.max()-x.min()) * 0.5 + 0.005
+        mx = (x.max()+x.min()) * 0.5
+        my = (y.max()+y.min()) * 0.5
+        mz = (z.max()+z.min()) * 0.5
+        ax.set_xlim(mx - display_range, mx + display_range)
+        # ax.set_ylim(mz - display_range, mz + display_range)
+        ax.set_aspect("equal", adjustable="box")
+        plt.show()
+
+def draw_3D_trajectory(file_name, tx, ty, tz, r, angled):
     file_path = os.path.normpath(os.path.join(os.getcwd(), file_name))
 
     # read data from npz file
@@ -104,9 +147,18 @@ def draw_3D_trajectory(file_name, tx, ty, tz, r):
         Theta, R = np.meshgrid(theta, radius)
         y_disk = ty + R * np.cos(Theta)
         z_disk = tz + R * np.sin(Theta)
-
         # place the circle at x = target x
         x_disk = np.full_like(y_disk, tx)
+
+        if angled:
+            points = np.stack([x_disk-tx, y_disk-ty, z_disk-tz], axis=-1)
+            rot = np.array([[np.cos(-0.2), 0, np.sin(-0.2)],
+                            [0, 1, 0],
+                            [-np.sin(-0.2), 0, np.cos(-0.2)]])
+            points = points @ rot.T
+            x_disk = points[..., 0] + tx
+            y_disk = points[..., 1] + ty
+            z_disk = points[..., 2] + tz
 
         ax.plot_surface(x_disk, y_disk, z_disk, color="C1", alpha=0.2, linewidth=0, shade=False)
 
@@ -144,6 +196,8 @@ if __name__ == "__main__":
     parser.add_argument("-y", "--target_y", help="target y position")
     parser.add_argument("-z", "--target_z", help="target z position")
     parser.add_argument("-r", "--radius", help="target radius")
+    parser.add_argument("-a", "--angled", help="angled wall flag")
+    parser.add_argument("--axis", default="x", help="normal axis")
     args = parser.parse_args()
     file_name = args.file_name
     mode = args.mode
@@ -154,9 +208,11 @@ if __name__ == "__main__":
     y = args.target_y
     z = args.target_z
     r = args.radius
+    angled = args.angled
+    axis = args.axis
     if mode == 2:
-        draw_2D_trajectory(file_name, x, y, z, r)
-    if mode == 3:
-        draw_3D_trajectory(file_name, x, y, z, r)
+        draw_2D_trajectory(file_name, x, y, z, r, angled, axis)
+    elif mode == 3:
+        draw_3D_trajectory(file_name, x, y, z, r, angled)
     else:
         print("invalid mode")
