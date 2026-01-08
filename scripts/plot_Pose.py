@@ -18,6 +18,20 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
     y = []
     z = []
 
+    # target position
+    if tx:
+        tx = float(tx)
+    else:
+        tx = 0
+    if ty:
+        ty = float(ty)
+    else:
+        ty = 0
+    if tz:
+        tz = float(tz)
+    else:
+        tz = 0
+
     # read data
     for topic, msg, t in bag.read_messages(topics=[topic_name]):
         time.append(t.to_sec())
@@ -54,12 +68,24 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
         name = "data/endeffector_pose_xyz_" + file_name + ".npz"
     name = name.replace("bags/", "")
     name = name.replace(".bag", "")
-    np.savez(name, time=time, x=x, y=y, z=z)
+    np.savez(name, time=time, x=x, y=y, z=z, tx=tx, ty=ty, tz=tz)
 
     # graph
     fig_number = 3 - int(ox is not None) - int(oy is not None) - int(oz is not None)
     print(fig_number)
     fig, ax = plt.subplots(fig_number, 1, sharex=True, figsize=(8, 3*fig_number))
+
+    # range
+    if oy and oz:
+        display_range = (x.max()-x.min()) * 0.5 + 0.001
+    else:
+        display_range = np.array([x.max()-x.min(), z.max()-z.min()]).max() * 0.5 + 0.001
+    mx = (x.max()+x.min()) * 0.5
+    my = (y.max()+y.min()) * 0.5
+    mz = (z.max()+z.min()) * 0.5
+    thres = 0.01
+    if display_range < thres:
+        display_range = thres
 
     # x
     if not ox:
@@ -75,6 +101,7 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
             ax[0].set_ylabel("x [m]")
             ax[0].set_xlabel("Time [s]")
             ax[0].legend()
+            ax[0].set_ylim(mx - display_range, mx + display_range)
         elif fig_number == 1:
             ax.plot(time, x, label="x")
             if tx:
@@ -86,6 +113,7 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
             ax.set_ylabel("x [m]")
             ax.set_xlabel("Time [s]")
             ax.legend()
+            ax.set_ylim(mx - display_range, mx + display_range)
 
     # y
     if not oy:
@@ -100,6 +128,7 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
             ax[1].set_ylabel("y [m]")
             ax[1].set_xlabel("Time [s]")
             ax[1].legend()
+            ax[1].set_ylim(my - display_range, my + display_range)
         elif fig_number == 1:
             ax.plot(time, y, label="y")
             if ty:
@@ -111,6 +140,7 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
             ax.set_ylabel("y [m]")
             ax.set_xlabel("Time [s]")
             ax.legend()
+            ax.set_ylim(my - display_range, my + display_range)
 
     # z
     if not oz:
@@ -125,6 +155,7 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
             ax[2].set_ylabel("z [m]")
             ax[2].set_xlabel("Time [s]")
             ax[2].legend()
+            ax[2].set_ylim(mz - display_range, mz + display_range)
         elif fig_number == 1:
             ax.plot(time, z, label="z")
             if tz:
@@ -135,7 +166,8 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
                     ax[2].axhspan(tz-rz, tz+rz, color="C1", alpha=0.2)
             ax.set_ylabel("z [m]")
             ax.set_xlabel("Time [s]")
-            ax.legend()            
+            ax.legend()
+            ax.set_ylim(mz - display_range, mz + display_range)
 
     plt.tight_layout()
     plt.show()    
