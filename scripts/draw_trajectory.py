@@ -8,8 +8,9 @@ import argparse
 import os
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from matplotlib.ticker import MaxNLocator
+from matplotlib import patches
 
-def draw_2D_trajectory(file_name, tx, ty, tz, r, angled, axis):
+def draw_2D_trajectory(file_name, r, angled, axis):
     file_path = os.path.normpath(os.path.join(os.getcwd(), file_name))
 
     # read data from npz file
@@ -18,6 +19,9 @@ def draw_2D_trajectory(file_name, tx, ty, tz, r, angled, axis):
     x = data["x"]
     y = data["y"]
     z = data["z"]
+    tx = data["tx"]
+    ty = data["ty"]
+    tz = data["tz"]
 
     # adjust for LineCollection
     if axis == "x":
@@ -45,7 +49,10 @@ def draw_2D_trajectory(file_name, tx, ty, tz, r, angled, axis):
             tz = float(tz)
             r = float(r)
 
-            target_circle = Circle((ty, tz), r, color="C1", alpha=0.2, label="target area")
+            if angled:
+                target_circle = patches.Ellipse((ty, tz), 2*r, 2*r*np.cos(0.2), color="C1", alpha=0.2, label="target area")
+            else:
+                target_circle = Circle((ty, tz), r, color="C1", alpha=0.2, label="target area")
             ax.add_patch(target_circle)
 
         # start and end
@@ -106,7 +113,7 @@ def draw_2D_trajectory(file_name, tx, ty, tz, r, angled, axis):
         ax.set_aspect("equal", adjustable="box")
         plt.show()
 
-def draw_3D_trajectory(file_name, tx, ty, tz, r, angled):
+def draw_3D_trajectory(file_name, r, angled):
     file_path = os.path.normpath(os.path.join(os.getcwd(), file_name))
 
     # read data from npz file
@@ -115,6 +122,9 @@ def draw_3D_trajectory(file_name, tx, ty, tz, r, angled):
     x = data["x"]
     y = data["y"]
     z = data["z"]
+    tx = data["tx"]
+    ty = data["ty"]
+    tz = data["tz"]
 
     # adjust for Line3DCollection
     points = np.array([x, y, z]).T.reshape(-1, 1, 3)
@@ -192,9 +202,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("file_name", help="rosbag file")
     parser.add_argument("-m", "--mode", help="trajectory generate mode(2:2D, 3:3D)")
-    parser.add_argument("-x", "--target_x", help="target x position")
-    parser.add_argument("-y", "--target_y", help="target y position")
-    parser.add_argument("-z", "--target_z", help="target z position")
+    # parser.add_argument("-x", "--target_x", help="target x position")
+    # parser.add_argument("-y", "--target_y", help="target y position")
+    # parser.add_argument("-z", "--target_z", help="target z position")
     parser.add_argument("-r", "--radius", help="target radius")
     parser.add_argument("-a", "--angled", help="angled wall flag")
     parser.add_argument("--axis", default="x", help="normal axis")
@@ -211,8 +221,8 @@ if __name__ == "__main__":
     angled = args.angled
     axis = args.axis
     if mode == 2:
-        draw_2D_trajectory(file_name, x, y, z, r, angled, axis)
+        draw_2D_trajectory(file_name, r, angled, axis)
     elif mode == 3:
-        draw_3D_trajectory(file_name, x, y, z, r, angled)
+        draw_3D_trajectory(file_name, r, angled)
     else:
         print("invalid mode")
