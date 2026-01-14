@@ -71,6 +71,12 @@ def draw_2D_trajectory(file_name, r, angled, axis):
         ax.legend()
         plt.tight_layout()
 
+        display_range = np.array([y.max()-y.min(), z.max()-z.min()]).max() * 0.5 + 0.004
+        mx = (x.max()+x.min()) * 0.5
+        my = (y.max()+y.min()) * 0.5
+        mz = (z.max()+z.min()) * 0.5
+        ax.set_xlim(my - display_range, my + display_range)
+        ax.set_ylim(mz - display_range, mz + display_range)
         plt.gca().invert_xaxis()
         plt.show()
 
@@ -108,6 +114,8 @@ def draw_2D_trajectory(file_name, r, angled, axis):
         mx = (x.max()+x.min()) * 0.5
         my = (y.max()+y.min()) * 0.5
         mz = (z.max()+z.min()) * 0.5
+        if y.max() - y.min() > 0.1:
+            display_range = 0.02
         ax.set_xlim(mx - display_range, mx + display_range)
         # ax.set_ylim(mz - display_range, mz + display_range)
         ax.set_aspect("equal", adjustable="box")
@@ -202,9 +210,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("file_name", help="rosbag file")
     parser.add_argument("-m", "--mode", help="trajectory generate mode(2:2D, 3:3D)")
-    # parser.add_argument("-x", "--target_x", help="target x position")
-    # parser.add_argument("-y", "--target_y", help="target y position")
-    # parser.add_argument("-z", "--target_z", help="target z position")
+    parser.add_argument("-x", "--target_x", help="target x position")
+    parser.add_argument("-y", "--target_y", help="target y position")
+    parser.add_argument("-z", "--target_z", help="target z position")
     parser.add_argument("-r", "--radius", help="target radius")
     parser.add_argument("-a", "--angled", help="angled wall flag")
     parser.add_argument("--axis", default="x", help="normal axis")

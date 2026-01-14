@@ -79,7 +79,7 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
     if oy and oz:
         display_range = (x.max()-x.min()) * 0.5 + 0.001
     else:
-        display_range = np.array([x.max()-x.min(), z.max()-z.min()]).max() * 0.5 + 0.001
+        display_range = np.array([x.max()-x.min(), y.max()-y.min(), z.max()-z.min()]).max() * 0.5 + 0.001
     mx = (x.max()+x.min()) * 0.5
     my = (y.max()+y.min()) * 0.5
     mz = (z.max()+z.min()) * 0.5
