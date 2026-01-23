@@ -10,7 +10,7 @@ from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from matplotlib.ticker import MaxNLocator
 from matplotlib import patches
 
-def draw_2D_trajectory(file_name, r, angled, axis):
+def draw_2D_trajectory(file_name, r, angled, axis, legend_flag):
     file_path = os.path.normpath(os.path.join(os.getcwd(), file_name))
 
     # read data from npz file
@@ -92,7 +92,8 @@ def draw_2D_trajectory(file_name, r, angled, axis):
         cbar = plt.colorbar(lc, ax=ax)
         cbar.set_label("Time [s]")
 
-        ax.legend()
+        if legend_flag:
+            ax.legend()
         plt.tight_layout()
 
         display_range = np.array([y.max()-y.min(), z.max()-z.min()]).max() * 0.5 + 0.001
@@ -129,7 +130,8 @@ def draw_2D_trajectory(file_name, r, angled, axis):
         cbar = plt.colorbar(lc, ax=ax)
         cbar.set_label("Time [s]")
 
-        ax.legend()
+        if legend_flag:
+            ax.legend()
         plt.tight_layout()
 
         # display range
@@ -240,6 +242,7 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--radius", help="target radius")
     parser.add_argument("-a", "--angled", help="angled wall flag")
     parser.add_argument("--axis", default="x", help="normal axis")
+    parser.add_argument("-l", "--legend", default="1", help="display legend flag")
     args = parser.parse_args()
     file_name = args.file_name
     mode = args.mode
@@ -252,8 +255,9 @@ if __name__ == "__main__":
     r = args.radius
     angled = args.angled
     axis = args.axis
+    legend_flag = int(args.legend)
     if mode == 2:
-        draw_2D_trajectory(file_name, r, angled, axis)
+        draw_2D_trajectory(file_name, r, angled, axis, legend_flag)
     elif mode == 3:
         draw_3D_trajectory(file_name, r, angled)
     else:
