@@ -83,7 +83,7 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
     mx = (x.max()+x.min()) * 0.5
     my = (y.max()+y.min()) * 0.5
     mz = (z.max()+z.min()) * 0.5
-    thres = 0.01
+    thres = 0.03
     if display_range < thres:
         display_range = thres
 

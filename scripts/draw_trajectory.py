@@ -71,7 +71,7 @@ def draw_2D_trajectory(file_name, r, angled, axis):
         ax.legend()
         plt.tight_layout()
 
-        display_range = np.array([y.max()-y.min(), z.max()-z.min()]).max() * 0.5 + 0.004
+        display_range = np.array([y.max()-y.min(), z.max()-z.min()]).max() * 0.5 + 0.001
         mx = (x.max()+x.min()) * 0.5
         my = (y.max()+y.min()) * 0.5
         mz = (z.max()+z.min()) * 0.5
