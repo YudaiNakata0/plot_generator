@@ -26,6 +26,29 @@ def draw_2D_trajectory(file_name, r, angled, axis):
     # adjust for LineCollection
     if axis == "x":
         points = np.array([y, z]).T.reshape(-1, 1, 2)
+        if angled:
+            P = np.stack([
+                x - tx,
+                y - ty,
+                z - tz
+            ], axis=1)   # (N,3)
+
+            # --- rotate to tilted frame ---
+            pitch = -0.2
+            c = np.cos(pitch)
+            s = np.sin(pitch)
+            R_y = np.array([
+                [ c, 0,  s],
+                [ 0, 1,  0],
+                [-s, 0,  c]
+            ])
+
+            P_tilt = P @ R_y.T
+
+            # --- yz plane in tilted frame ---
+            y = P_tilt[:, 1]
+            z = P_tilt[:, 2]
+            points = np.array([y, z]).T.reshape(-1, 1, 2)
     elif axis == "y":
         points = np.array([x, z]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
@@ -50,7 +73,8 @@ def draw_2D_trajectory(file_name, r, angled, axis):
             r = float(r)
 
             if angled:
-                target_circle = patches.Ellipse((ty, tz), 2*r, 2*r*np.cos(0.2), color="C1", alpha=0.2, label="target area")
+                # target_circle = patches.Ellipse((ty, tz), 2*r, 2*r*np.cos(0.2), color="C1", alpha=0.2, label="target area")
+                target_circle = Circle((0, 0), r, color="C1", alpha=0.2, label="target area")
             else:
                 target_circle = Circle((ty, tz), r, color="C1", alpha=0.2, label="target area")
             ax.add_patch(target_circle)
