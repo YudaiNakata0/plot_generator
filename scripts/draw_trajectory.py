@@ -7,10 +7,10 @@ from geometry_msgs.msg import Pose, PoseStamped
 import argparse
 import os
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
-from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import MaxNLocator, MultipleLocator
 from matplotlib import patches
 
-def draw_2D_trajectory(file_name, r, angled, axis, legend_flag):
+def draw_2D_trajectory(file_name, r, angled, axis, legend_flag, pitch, yz_range):
     file_path = os.path.normpath(os.path.join(os.getcwd(), file_name))
 
     # read data from npz file
@@ -34,7 +34,6 @@ def draw_2D_trajectory(file_name, r, angled, axis, legend_flag):
             ], axis=1)   # (N,3)
 
             # --- rotate to tilted frame ---
-            pitch = -0.2
             c = np.cos(pitch)
             s = np.sin(pitch)
             R_y = np.array([
@@ -86,6 +85,8 @@ def draw_2D_trajectory(file_name, r, angled, axis, legend_flag):
         ax.set_xlabel("y [m]")
         ax.set_ylabel("z [m]")
         ax.set_aspect("equal", adjustable="box")
+        ax.xaxis.set_major_locator(MultipleLocator(0.01))
+        ax.yaxis.set_major_locator(MultipleLocator(0.01))
         ax.grid(True)
 
         # color bar
@@ -100,8 +101,10 @@ def draw_2D_trajectory(file_name, r, angled, axis, legend_flag):
         mx = (x.max()+x.min()) * 0.5
         my = (y.max()+y.min()) * 0.5
         mz = (z.max()+z.min()) * 0.5
-        ax.set_xlim(my - display_range, my + display_range)
-        ax.set_ylim(mz - display_range, mz + display_range)
+        # ax.set_xlim(my - display_range, my + display_range)
+        # ax.set_ylim(mz - display_range, mz + display_range)
+        ax.set_xlim(-yz_range, yz_range)
+        ax.set_ylim(-yz_range, yz_range)
         plt.gca().invert_xaxis()
         plt.show()
 
@@ -235,7 +238,7 @@ def draw_3D_trajectory(file_name, r, angled):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("file_name", help="rosbag file")
-    parser.add_argument("-m", "--mode", help="trajectory generate mode(2:2D, 3:3D)")
+    parser.add_argument("-m", "--mode", default="2", help="trajectory generate mode(2:2D, 3:3D)")
     parser.add_argument("-x", "--target_x", help="target x position")
     parser.add_argument("-y", "--target_y", help="target y position")
     parser.add_argument("-z", "--target_z", help="target z position")
@@ -243,6 +246,8 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--angled", help="angled wall flag")
     parser.add_argument("--axis", default="x", help="normal axis")
     parser.add_argument("-l", "--legend", default="1", help="display legend flag")
+    parser.add_argument("-p", "--pitch", default="0", help="wall angle")
+    parser.add_argument("--yz_range", default="0.01", help="range")
     args = parser.parse_args()
     file_name = args.file_name
     mode = args.mode
@@ -256,8 +261,10 @@ if __name__ == "__main__":
     angled = args.angled
     axis = args.axis
     legend_flag = int(args.legend)
+    pitch = float(args.pitch)
+    yz_range = float(args.yz_range)
     if mode == 2:
-        draw_2D_trajectory(file_name, r, angled, axis, legend_flag)
+        draw_2D_trajectory(file_name, r, angled, axis, legend_flag, pitch, yz_range)
     elif mode == 3:
         draw_3D_trajectory(file_name, r, angled)
     else:
