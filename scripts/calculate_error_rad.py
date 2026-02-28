@@ -7,6 +7,8 @@ from geometry_msgs.msg import Pose, PoseStamped
 import argparse
 import os
 
+GRAY = "#D0D0D0"
+
 def calculate_error(file_name, mode=None):
     file_path = os.path.normpath(os.path.join(os.getcwd(), file_name))
     if mode:
@@ -34,8 +36,17 @@ def calculate_error(file_name, mode=None):
         r_mean = np.sqrt(r2_mean)
         print(r_mean)
         r_list = np.sqrt(r2_list)
+        # save r_list
+        name = file_name[:-4] + "_r" + ".npz"
+        np.savez(name, time=time[:l], r=r_list)
         fig, ax = plt.subplots()
         ax.plot(time, r_list)
+
+        # boxplot
+        fig2, ax2 = plt.subplots()
+        ax2.boxplot(r_list, vert=True, showfliers=True)
+        ax2.set_ylabel("Position Error r [m]")
+        ax2.set_title("Distribution of Position Error (Boxplot)")
         plt.show()
         
     else:

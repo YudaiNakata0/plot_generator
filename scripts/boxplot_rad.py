@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+import numpy as np
+import matplotlib.pyplot as plt
+import argparse
+import os
+
+def main(npz_files, output, show):
+    r_data = []
+    labels = []
+
+    for f in npz_files:
+        data = np.load(f)
+        if "r" not in data:
+            raise KeyError(f"{f} does not contain key 'r'")
+
+        r = data["r"]
+        r_data.append(r)
+
+        labels.append(os.path.basename(f))
+
+    # ===== boxplot =====
+    fig, ax = plt.subplots(figsize=(1.8 * len(r_data), 5))
+
+    ax.boxplot(
+        r_data,
+        whis=[0, 100],
+        vert=True,
+        showfliers=True,
+        patch_artist=True
+    )
+
+    ax.set_xticks(range(1, len(labels) + 1))
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.set_ylabel("Position Error r [m]")
+    ax.set_title("Position Error Distribution per Experiment")
+    ax.set_ylim(bottom=0)
+
+    ax.grid(True, axis="y", linestyle="--", alpha=0.5)
+    plt.tight_layout()
+
+    if output:
+        plt.savefig(output, dpi=300)
+        print(f"saved: {output}")
+
+    if show:
+        plt.show()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Create boxplots from r in multiple npz files"
+    )
+    parser.add_argument(
+        "npz_files",
+        nargs="+",
+        help="npz files containing r array"
+    )
+    parser.add_argument(
+        "-o", "--output",
+        help="output image file (e.g. boxplot.png)"
+    )
+    parser.add_argument(
+        "--noshow",
+        action="store_true",
+        help="do not display the figure"
+    )
+
+    args = parser.parse_args()
+
+    main(
+        args.npz_files,
+        args.output,
+        show=not args.noshow
+    )
