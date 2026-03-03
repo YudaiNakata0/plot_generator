@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 from geometry_msgs.msg import Pose, PoseStamped
 import argparse
 import os
+from module import operation_quaternion as oq
 
-def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None, rz=None, start_time=None, end_time=None, ox=None, oy=None, oz=None):
+def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None, rz=None, troll=None, tpitch=None, tyaw=None, start_time=None, end_time=None, ox=None, oy=None, oz=None):
     # path conversion
     file_path = os.path.normpath(os.path.join(os.getcwd(), file_name))
     # open bag file
@@ -17,8 +18,11 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
     x = []
     y = []
     z = []
+    roll = []
+    pitch = []
+    yaw = []
 
-    # target position
+    # target pose
     if tx:
         tx = float(tx)
     else:
@@ -31,6 +35,18 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
         tz = float(tz)
     else:
         tz = 0
+    if troll:
+        troll = float(troll)
+    else:
+        troll = 0
+    if tpitch:
+        tpitch = float(tpitch)
+    else:
+        tpitch = 0
+    if tyaw:
+        tyaw = float(tyaw)
+    else:
+        tyaw = 0
 
     # read data
     for topic, msg, t in bag.read_messages(topics=[topic_name]):
@@ -38,6 +54,11 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
         x.append(msg.position.x)
         y.append(msg.position.y)
         z.append(msg.position.z)
+        q = msg.orientation
+        qr, qp, qy = oq.quaternion_to_euler(q)
+        roll.append(qr)
+        pitch.append(qp)
+        yaw.append(qy)
 
     bag.close()
 
@@ -46,6 +67,9 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
     x = np.array(x)
     y = np.array(y)
     z = np.array(z)
+    roll = np.array(roll)
+    pitch = np.array(pitch)
+    yaw = np.array(yaw)
 
     # adjust time(start from 0)
     time -= time[0]
@@ -59,16 +83,19 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
         x = x[mask]
         y = y[mask]
         z = z[mask]
+        roll = roll[mask]
+        pitch = pitch[mask]
+        yaw = yaw[mask]
         time -= time[0]
 
     # save xyz data
     if start_time and end_time:
-        name = "data/endeffector_pose_xyz_" + "[" + str(round(start_time)) + "-" + str(round(end_time)) + "]" + file_name + ".npz"
+        name = "data/endeffector_pose_" + "[" + str(round(start_time)) + "-" + str(round(end_time)) + "]" + file_name + ".npz"
     else:
-        name = "data/endeffector_pose_xyz_" + file_name + ".npz"
+        name = "data/endeffector_pose_" + file_name + ".npz"
     name = name.replace("bags/", "")
     name = name.replace(".bag", "")
-    np.savez(name, time=time, x=x, y=y, z=z, tx=tx, ty=ty, tz=tz)
+    np.savez(name, time=time, x=x, y=y, z=z, tx=tx, ty=ty, tz=tz, roll=roll, pitch=pitch, yaw=yaw, troll=troll, tpitch=tpitch, tyaw=tyaw)
 
     # graph
     fig_number = 3 - int(ox is not None) - int(oy is not None) - int(oz is not None)
@@ -172,6 +199,30 @@ def plot_Pose(file_name, topic_name, tx=None, ty=None, tz=None, rx=None, ry=None
     plt.tight_layout()
     plt.show()    
 
+    # rpy
+    fig_rpy, ax_rpy = plt.subplots(3, 1, sharex=True, figsize=(8, 9))
+
+    ax_rpy[0].plot(time, roll, label="roll")
+    if troll:
+        ax_rpy[0].axhline(troll, color="C1", alpha=0.5)
+    ax_rpy[0].set_ylabel("Roll [rad]")
+    ax_rpy[0].legend()
+
+    ax_rpy[1].plot(time, pitch, label="pitch")
+    if tpitch:
+        ax_rpy[1].axhline(tpitch, color="C1", alpha=0.5)
+    ax_rpy[1].set_ylabel("Pitch [rad]")
+    ax_rpy[1].legend()
+
+    ax_rpy[2].plot(time, yaw, label="yaw")
+    if tyaw:
+        ax_rpy[2].axhline(tyaw, color="C1", alpha=0.5)
+    ax_rpy[2].set_ylabel("Yaw [rad]")
+    ax_rpy[2].set_xlabel("Time [s]")
+    ax_rpy[2].legend()
+
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -183,6 +234,9 @@ if __name__ == "__main__":
     parser.add_argument("--rx", help="target x range([x-rx, x+rx])")
     parser.add_argument("--ry", help="target y range([y-ry, y+ry])")
     parser.add_argument("--rz", help="target z range([z-rz, z+rz])")
+    parser.add_argument("--roll", help="target roll")
+    parser.add_argument("--pitch", help="target pitch")
+    parser.add_argument("--yaw", help="target yaw")
     parser.add_argument("-s", "--start_time",  help="start time")
     parser.add_argument("-e", "--end_time", help="end time")
     parser.add_argument("--ox", help="off x plot")
@@ -197,9 +251,12 @@ if __name__ == "__main__":
     rx = args.rx
     ry = args.ry
     rz = args.rz
+    roll = args.roll
+    pitch = args.pitch
+    yaw = args.yaw
     s = args.start_time
     e = args.end_time
     ox = args.ox
     oy = args.oy
     oz = args.oz
-    plot_Pose(file_name, topic_name, x, y, z, rx, ry, rz, s, e, ox, oy, oz)
+    plot_Pose(file_name, topic_name, x, y, z, rx, ry, rz, roll, pitch, yaw, s, e, ox, oy, oz)
