@@ -8,6 +8,8 @@ def main(npz_files, output, show):
     r_data = []
     labels = []
 
+    color = "#00ffff"
+
     for f in npz_files:
         data = np.load(f)
         if "r" not in data:
@@ -21,13 +23,21 @@ def main(npz_files, output, show):
     # ===== boxplot =====
     fig, ax = plt.subplots(figsize=(1.8 * len(r_data), 5))
 
-    ax.boxplot(
+    bp = ax.boxplot(
         r_data,
         whis=[0, 100],
         vert=True,
         showfliers=True,
-        patch_artist=True
+        patch_artist=True,
+        boxprops=dict(linewidth=1.2, edgecolor="black"),
+        medianprops=dict(linewidth=1.0, color="black"),
+        whiskerprops=dict(linewidth=1.2, color="black"),
+        capprops=dict(linewidth=1.2, color="black"),
     )
+
+    for i, box in enumerate(bp["boxes"]):
+        box.set_facecolor(color)
+        box.set_edgecolor("black")
 
     ax.set_xticks(range(1, len(labels) + 1))
     ax.set_xticklabels(labels, rotation=30, ha="right")
