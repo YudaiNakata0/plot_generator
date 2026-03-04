@@ -29,8 +29,8 @@ def main(npz_files, output, show):
         labels.append(os.path.basename(f))
 
         pos = 1
-        gap_a = 0.5
-        gap_b = 0.4
+        gap_a = 0.3
+        gap_b = 0.2
 
         for label, r, p, y in zip(labels, r_data, p_data, y_data):
             # Roll, Pitch, Yaw を順に追加
@@ -38,18 +38,18 @@ def main(npz_files, output, show):
             positions.extend([pos, pos + gap_a, pos + gap_a*2])
 
             # xtick は experiment の中央に置く
-            xtick_positions.append(pos + 1)
+            xtick_positions.append(pos + gap_a)
             xtick_labels.append(label)
 
             pos += gap_a*3 + gap_b
 
     # ===== boxplot =====
-    fig, ax = plt.subplots(figsize=(1.8 * len(labels)*3, 5))
+    fig, ax = plt.subplots(figsize=(1.0 * len(labels)*3, 5))
 
     bp = ax.boxplot(
         box_data,
         positions=positions,
-        widths=0.4,
+        widths=0.25,
         whis=[0, 100],
         showfliers=True,
         patch_artist=True,
