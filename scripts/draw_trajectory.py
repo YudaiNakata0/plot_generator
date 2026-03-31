@@ -9,6 +9,7 @@ import os
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from matplotlib.ticker import MaxNLocator, MultipleLocator
 from matplotlib import patches
+from scipy.ndimage import gaussian_filter1d
 
 def draw_2D_trajectory(file_name, r, angled, axis, legend_flag, pitch, yz_range):
     file_path = os.path.normpath(os.path.join(os.getcwd(), file_name))
@@ -22,6 +23,7 @@ def draw_2D_trajectory(file_name, r, angled, axis, legend_flag, pitch, yz_range)
     tx = data["tx"]
     ty = data["ty"]
     tz = data["tz"]
+    print(tx, ty, tz)
 
     # adjust for LineCollection
     if axis == "x":
@@ -54,16 +56,77 @@ def draw_2D_trajectory(file_name, r, angled, axis, legend_flag, pitch, yz_range)
 
     # color map
     norm = plt.Normalize(time.min(), time.max())
+    lc_wide = LineCollection(segments, color=(0.8, 0.95, 1.0))
+    lc_wide.set_array(time)
+    lc_wide.set_linewidth(18.0)
+    lc_wide.set_alpha(1.0)
+    lc_wide.set_zorder(0)
     lc = LineCollection(segments, cmap="viridis", norm=norm)
     lc.set_array(time)
     lc.set_linewidth(2.0)
+
+    # 軌跡
+    px = y
+    py = z
+
+    # 接線
+    dx_orig = np.zeros_like(px)
+    dy_orig = np.zeros_like(py)
+    for i in range(len(dx_orig)-1):
+        dx_orig[i] = px[i+1] - px[i]
+        dy_orig[i] = py[i+1] - py[i]
+    dx_orig[-1] = dx_orig[-2]
+    dy_orig[-1] = dy_orig[-2]
+    dx = dx_orig
+    dy = dy_orig
+    # for i in range(1, len(dx)-1):
+    #     dx[i] = 0.6*dx[i-1] + 0.4*dx[i]
+    #     dy[i] = 0.6*dy[i-1] + 0.4*dy[i]
+
+    norm = np.sqrt(dx**2 + dy**2) + 1e-8
+
+    # 幅
+    width = [0.001] * len(px)
+
+    # 法線
+    nx_orig = -dy / norm
+    ny_orig = dx / norm
+    nx = nx_orig
+    ny = ny_orig
+    for i in range(1, len(nx)):
+        nx[i] = 0.5*nx[i-1] + 0.5*nx[i]
+        ny[i] = 0.5*ny[i-1] + 0.5*ny[i]
+        delta = np.sqrt((nx_orig[i]-nx_orig[i-1])**2 + (ny_orig[i]-ny_orig[i-1])**2)
+        width[i] = (1+delta)*width[i]
+        # det = nx_orig[i-1]*ny_orig[i] - ny_orig[i-1]*nx_orig[i]
+        # if det > 0:
+        #     nx[i] = (ny_orig[i] - ny_orig[i-1]) / det
+        #     ny[i] = (nx_orig[i-1] - nx_orig[i]) / det
+
+    # 上下オフセット
+    x_upper = px + width * nx
+    y_upper = py + width * ny
+    x_lower = px - width * nx
+    y_lower = py - width * ny
+
+    # 帯
+    band_x = np.concatenate([x_upper, x_lower[::-1]])
+    band_y = np.concatenate([y_upper, y_lower[::-1]])
 
     # make figure
     fig, ax = plt.subplots(figsize=(6, 6))
 
     # trajectory
+    ax.add_collection(lc_wide)
     ax.add_collection(lc)
-
+    # ax.fill(
+    #     band_x,
+    #     band_y,
+    #     color="C0",
+    #     alpha=0.2,
+    #     edgecolor="none",
+    #     zorder=0
+    # )
     if axis == "x":
         # target area
         if ty and tz and r:
