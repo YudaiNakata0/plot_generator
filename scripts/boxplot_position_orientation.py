@@ -35,8 +35,8 @@ def main(r_files, theta_files, output, show):
     fig, ax_r = plt.subplots(figsize=(2.2 * n, 5))
     ax_theta = ax_r.twinx()
 
-    r_color = "#00ffff"
-    theta_color = "#ff9999"
+    r_color = "#92b1d9"
+    theta_color = "#f6c8b6"
 
     r_positions = []
     theta_positions = []
