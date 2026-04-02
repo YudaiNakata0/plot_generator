@@ -56,7 +56,7 @@ def draw_2D_trajectory(file_name, r, angled, axis, legend_flag, pitch, yz_range)
 
     # color map
     norm = plt.Normalize(time.min(), time.max())
-    lc_wide = LineCollection(segments, color=(0.8, 0.95, 1.0))
+    lc_wide = LineCollection(segments, color=(0.6, 0.9, 1.0))
     lc_wide.set_array(time)
     lc_wide.set_linewidth(18.0)
     lc_wide.set_alpha(1.0)
