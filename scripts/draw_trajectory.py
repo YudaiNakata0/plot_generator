@@ -306,7 +306,7 @@ if __name__ == "__main__":
     parser.add_argument("-y", "--target_y", help="target y position")
     parser.add_argument("-z", "--target_z", help="target z position")
     parser.add_argument("-r", "--radius", help="target radius")
-    parser.add_argument("-a", "--angled", help="angled wall flag")
+    parser.add_argument("-a", "--angled", default="None", help="angled wall flag")
     parser.add_argument("--axis", default="x", help="normal axis")
     parser.add_argument("-l", "--legend", default="1", help="display legend flag")
     parser.add_argument("-p", "--pitch", default="0", help="wall angle")
