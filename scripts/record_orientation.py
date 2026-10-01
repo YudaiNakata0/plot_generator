@@ -37,7 +37,7 @@ def record_orientation(file_name, topic_name, troll=None, tpitch=None, tyaw=None
     for topic, msg, t in bag.read_messages(topics=[topic_name]):
         time.append(t.to_sec())
         q = msg.orientation
-        dq = oq.inverse_calclate_quaternion(q, tq)
+        dq = oq.inverse_calculate_quaternion(q, tq)
         dtheta = 2 * np.arccos(dq.w)
         theta.append(dtheta)
 

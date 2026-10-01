@@ -63,13 +63,15 @@ def add_pose(pose1, pose2):
 
 # 共役クオータニオンの生成　入力：Quaternion型　出力：Quaternion型
 def conjugate(quat):
-    quat.x = -quat.x
-    quat.y = -quat.y
-    quat.z = -quat.z
-    return quat
+    conj_quat = Quaternion()
+    conj_quat.x = -quat.x
+    conj_quat.y = -quat.y
+    conj_quat.z = -quat.z
+    conj_quat.w = quat.w
+    return conj_quat
 
 # 始状態から終状態へのクオータニオンの逆計算　入力：Quaternion型(2)　出力：Quaternion型
-def inverse_calclate_quaternion(quat_start, quat_end):
+def inverse_calculate_quaternion(quat_start, quat_end):
     move_quat = synthesize_quaternion(conjugate(quat_start), quat_end)
     return move_quat
 
