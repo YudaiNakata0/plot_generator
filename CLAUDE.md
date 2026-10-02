@@ -23,6 +23,30 @@ rosbag (`.bag`) などのデータファイルから様々なグラフを作成�
 ./scripts/plot_Pose.py bags/xxx.bag /topic     # 既存スクリプトの例
 ```
 
+## app/ の構成
+
+GUI ライブラリは PyQt5（apt の 5.15）を使う方針。Qt6 系は matplotlib 3.5.1 と組み合わせると動かず、cv2 も Qt5 でビルドされているため。npz を基本の保存形式とする。
+
+```
+app/
+  main.py            # GUI（現状は tkinter の試作。PyQt5 に置き換える予定）
+  core/              # GUI 非依存
+    dataset.py       # Dataset: name, time, channels{名前: 配列}, units, meta。操作は新しい Dataset を返す
+    loaders/
+      bag.py         # list_topics / list_fields / load(パス文字列でフィールド指定) / load_pose / load_wrench
+      npz.py         # load / save（scripts/ の npz と互換。付随情報は "__meta__" キーに JSON）
+  plots/             # グラフ種類。fig に描くだけで、ファイル読込や plt.show() はしない
+    base.py          # Param, PlotType, REGISTRY, @register
+    style.py         # scripts/ から引き継いだ色・透明度・箱ひげ図の設定
+    timeseries.py    # 時系列（plot_Pose / plot_from_npz / record_WrenchStamped を統合）
+```
+
+- `app/` から `import core` / `import plots` する前提（`./app/main.py` 実行時は `app/` が sys.path に入る）。
+- `core/loaders/bag.py` は ROS 環境が必要。`core/loaders/__init__.py` では import しない。
+- bag の meta["target"] に入る目標値は npz の命名（`tx`, `troll` など = `"t" + チャンネル名`）。
+- 新しいグラフ種類は `plots/` に `PlotType` のサブクラスを作り `@register` し、`plots/__init__.py` で import する。
+- bag の読み込みは大きい bag だと数秒以上かかる（0deg.bag の 277 メッセージのトピックで約 5 秒）。GUI では別スレッドで呼ぶ。
+
 ## app/main.py の現状（開発初期段階）
 
 tkinter + matplotlib による GUI。現状の流れ:
