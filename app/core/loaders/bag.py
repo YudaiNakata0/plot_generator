@@ -215,6 +215,10 @@ _WRENCH_FIELDS = {
 }
 
 
+POSE_TYPES = tuple(_POSE_PREFIX)
+WRENCH_TYPES = tuple(_WRENCH_PREFIX)
+
+
 def _topic_type(bag_path, topic):
     topics = list_topics(bag_path)
     if topic not in topics:

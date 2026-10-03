@@ -83,14 +83,15 @@ class TimeSeriesPlot(PlotType):
                     color_index += 1
                 self._draw_target(ax, datasets, channel, params)
 
-            ax.set_ylabel(self._ylabel(datasets, group))
+            ylabel = self._ylabel(datasets, group)
+            ax.set_ylabel(ylabel, **style.font_kwargs(ylabel))
             if params["legend"]:
-                ax.legend()
+                ax.legend(**style.legend_kwargs(ax))
 
         groups[-1][0].set_xlabel("Time [s]")
         self._set_ylim(datasets, groups, params)
         if params["title"]:
-            fig.suptitle(params["title"])
+            fig.suptitle(params["title"], **style.font_kwargs(params["title"]))
         fig.tight_layout()
 
     @staticmethod

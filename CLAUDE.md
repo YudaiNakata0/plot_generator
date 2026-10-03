@@ -14,14 +14,18 @@ rosbag (`.bag`) などのデータファイルから様々なグラフを作成�
 ## 実行環境
 
 - Python 3.10、ROS1（ROS One: `/opt/ros/one`）。`rosbag`, `roslib`, `rospy`, `geometry_msgs`, `cv_bridge` は ROS の環境から import する。
-- 主な依存ライブラリ: `numpy`, `matplotlib`, `scipy`, `opencv-python (cv2)`, `tkinter`。
+- 主な依存ライブラリ: `numpy`, `matplotlib`（apt の 3.5.1）, `scipy`, `opencv-python (cv2)`, `PyQt5`（apt の 5.15）。
 - パッケージ管理ファイル（requirements.txt 等）やテスト・リンタ設定は無い。
 - スクリプトは実行権限付きで、リポジトリのトップディレクトリから実行する前提（相対パスは `os.getcwd()` 基準で解決される）。
 
 ```bash
-./app/main.py                                  # アプリ起動
+./app/main.py [bag / npz ...]                  # アプリ起動（引数のファイルを開く）
 ./scripts/plot_Pose.py bags/xxx.bag /topic     # 既存スクリプトの例
 ```
+
+## 残作業
+
+今後の作業は `TODO.md` にまとめている。作業を始める前に確認し、終わったらチェックを付ける・新しい課題を追記する。
 
 ## app/ の構成
 
@@ -29,7 +33,7 @@ GUI ライブラリは PyQt5（apt の 5.15）を使う方針。Qt6 系は matpl
 
 ```
 app/
-  main.py            # GUI（現状は tkinter の試作。PyQt5 に置き換える予定）
+  main.py            # 起動スクリプト（QApplication + MainWindow）
   core/              # GUI 非依存
     dataset.py       # Dataset: name, time, channels{名前: 配列}, units, meta。操作は新しい Dataset を返す
     loaders/
@@ -39,6 +43,14 @@ app/
     base.py          # Param, PlotType, REGISTRY, @register
     style.py         # scripts/ から引き継いだ色・透明度・箱ひげ図の設定
     timeseries.py    # 時系列（plot_Pose / plot_from_npz / record_WrenchStamped を統合）
+  gui/               # PyQt5
+    qt.py            # Qt の import を集約（QT_API=pyqt5 を指定。Qt6 移行時はここを差し替える）
+    jobs.py          # JobRunner: 別スレッドで処理し、コールバックはメインスレッドで呼ぶ
+    main_window.py   # 左: bag / データセット、中央: グラフタブ + ログ、右: グラフ設定
+    source_panel.py  # bag → トピック → フィールドのツリー。チェックしたフィールドを読み込む
+    dataset_panel.py # Dataset → チャンネルのツリー。チェックしたものを描画に使う
+    param_panel.py   # PlotType.params から入力欄を自動生成。プリセット（JSON）の保存・読み込み
+    plot_view.py     # グラフのタブ（キャンバス + ツールバー）。書き出しは figsize・dpi=300 で描き直す
 ```
 
 - `app/` から `import core` / `import plots` する前提（`./app/main.py` 実行時は `app/` が sys.path に入る）。
@@ -46,22 +58,9 @@ app/
 - bag の meta["target"] に入る目標値は npz の命名（`tx`, `troll` など = `"t" + チャンネル名`）。
 - 新しいグラフ種類は `plots/` に `PlotType` のサブクラスを作り `@register` し、`plots/__init__.py` で import する。
 - bag の読み込みは大きい bag だと数秒以上かかる（0deg.bag の 277 メッセージのトピックで約 5 秒）。GUI では別スレッドで呼ぶ。
-
-## app/main.py の現状（開発初期段階）
-
-tkinter + matplotlib による GUI。現状の流れ:
-
-1. `MainWindow` がウィンドウ・キャンバス・「OPEN FILE」「RESET」ボタンを配置
-2. 「OPEN FILE」→ `filedialog` で bag ファイルを選択し、トピック一覧と型 (`topic_types`) を取得
-3. `SelectionDialog`（Listbox ダイアログ）でトピックを選択
-4. `roslib.message.get_message_class` でメッセージクラスを取得し、`build_msg_tree` でフィールド一覧（`pose.position.x` のようなドット区切り）を作って再度選択
-
-まだグラフ描画までは実装されていない（フィールド選択後は `print("result:", ...)` するだけ）。
-
-注意点:
-
-- `build_msg_tree` はメッセージ型の配列フィールド（例: `geometry_msgs/Point[]`）を `get_message_class` が `None` を返すためスキップする。プリミティブ配列（`float64[]` 等）はそのままフィールドとして列挙される。
-- 独自メッセージ型（`spinal/*`, `aerial_robot_msgs/*` など）は、その型のパッケージがビルド・source されていないと `get_message_class` が `None` になり、フィールドを列挙できない。
+- GUI から bag を読むなど時間のかかる処理は `JobRunner.submit` で実行する。ワーカースレッドから Qt のウィジェットを触らない。
+- matplotlib 3.5.1 にはフォントのフォールバックが無いので、日本語を含む文字列には `plots/style.py` の `font_kwargs` / `legend_kwargs` を使う（英語だけの図は DejaVu Sans のまま）。
+- 描画の確認は `QT_QPA_PLATFORM=offscreen` で `MainWindow` を作って操作し、`window.grab().save(...)` で画面を保存して見る。
 
 ## scripts/ の概要（アプリに持たせたい機能）
 
