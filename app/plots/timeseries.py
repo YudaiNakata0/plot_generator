@@ -16,11 +16,9 @@ def _file_targets(datasets, channel):
     """Dataset の meta["target"] から目標値を探す（npz の tx, troll などの命名規則）。"""
     values = []
     for ds in datasets:
-        targets = ds.targets
-        for key in ("t" + channel, channel):
-            if key in targets and targets[key] not in values:
-                values.append(targets[key])
-                break
+        target = ds.target_for(channel)
+        if target is not None and target not in values:
+            values.append(target)
     return values
 
 

@@ -1,6 +1,8 @@
 # plot_generator
 Scripts for visualizing data from rosbag files (```.bag``` files) and ```.npz``` files.
 
+GUI アプリ（`app/`）の使い方は [USAGE.md](USAGE.md) を参照。
+
 ## plot_Pose.py
 + Script for creating plots from Pose-type topics in rosbag files.
 + The xyz plot will be displayed first, followed by the roll-pitch-yaw plot.

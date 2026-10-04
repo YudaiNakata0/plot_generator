@@ -63,6 +63,14 @@ class Dataset:
     def unit(self, key) -> str:
         return self.units.get(key, "")
 
+    def target_for(self, channel) -> float | None:
+        """チャンネルの目標値を meta["target"] から探す（npz の命名規則: x → tx, roll → troll）。"""
+        targets = self.meta.get("target", {})
+        for key in ("t" + channel, channel):
+            if key in targets:
+                return targets[key]
+        return None
+
     def crop(self, start=None, end=None, rezero=True) -> Dataset:
         """[start, end] の区間を切り出す。None の端は切らない。rezero で再び 0 始まりにする。"""
         mask = np.ones(len(self.time), dtype=bool)

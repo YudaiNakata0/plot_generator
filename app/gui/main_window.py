@@ -2,6 +2,7 @@
 import os
 
 from core.loaders import npz
+from core.processing import stats as st
 
 from .dataset_panel import DatasetPanel
 from .jobs import JobRunner
@@ -9,6 +10,7 @@ from .param_panel import ParamPanel
 from .plot_view import DrawSpec, PlotView
 from .qt import Qt, QtGui, QtWidgets
 from .source_panel import SourcePanel
+from .stats_panel import StatsPanel
 
 OPEN_FILTER = "データファイル (*.bag *.npz);;rosbag (*.bag);;npz (*.npz);;すべて (*)"
 EXPORT_FILTER = "PNG (*.png);;PDF (*.pdf);;SVG (*.svg)"
@@ -42,6 +44,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.log_view = QtWidgets.QPlainTextEdit()
         self.log_view.setReadOnly(True)
         self.log_view.setMaximumBlockCount(2000)
+        self.stats = StatsPanel()
+
+        # 中央下: ログと統計のタブ
+        self.bottom_tabs = QtWidgets.QTabWidget()
+        self.bottom_tabs.addTab(self.log_view, "ログ")
+        self.bottom_tabs.addTab(self.stats, "統計")
 
         # ===== layout =====
         left = QtWidgets.QSplitter(Qt.Vertical)
@@ -51,8 +59,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         center = QtWidgets.QSplitter(Qt.Vertical)
         center.addWidget(self.plots)
-        center.addWidget(self._titled("ログ", self.log_view))
-        center.setSizes([700, 150])
+        center.addWidget(self.bottom_tabs)
+        center.setSizes([650, 200])
 
         main = QtWidgets.QSplitter(Qt.Horizontal)
         main.addWidget(left)
@@ -70,12 +78,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self._setup_menu()
 
         # ===== signals =====
-        for panel in (self.sources, self.datasets, self.params):
+        for panel in (self.sources, self.datasets, self.params, self.stats):
             panel.message.connect(self.log)
         self.sources.load_requested.connect(self.load_bag_topic)
         self.datasets.selection_changed.connect(self.params.set_channels)
         self.datasets.save_requested.connect(self.save_dataset)
         self.params.draw_requested.connect(self.draw)
+        self.plots.currentChanged.connect(self._on_tab_changed)
+        self.stats.refresh_requested.connect(self.refresh_stats)
+        self.stats.save_requested.connect(self.save_stats)
         self.jobs.running_changed.connect(self._on_running_changed)
         self.jobs.progress.connect(self._on_progress)
 
@@ -188,6 +199,61 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         self.plots.setTabText(self.plots.indexOf(tab), plot_type.name)
         self.log(f"描画: {plot_type.name} / {', '.join(ds.name for ds in datasets)} / {', '.join(channels)}")
+        self.update_stats(spec)
+
+    # ===== 統計 =====
+
+    def update_stats(self, spec):
+        """spec のデータ・設定値で統計量を計算して表示する。"""
+        if spec is None:
+            self.stats.set_stats([], "グラフを描画すると、描画したデータの統計量を表示します")
+            return
+        try:
+            params = spec.plot_type.resolve_params(spec.params)
+            start, end = params.get("start"), params.get("end")
+            results = st.dataset_stats(
+                spec.datasets, spec.channels,
+                targets=params.get("targets"), bands=params.get("bands"),
+                use_file_target=params.get("use_file_target", True),
+                start=start, end=end,
+            )
+        except Exception as e:
+            self.error(f"統計量を計算できません: {type(e).__name__}: {e}")
+            return
+        note = f"{spec.plot_type.name} の設定で計算"
+        if start is not None or end is not None:
+            note += f"（区間 {'' if start is None else start} 〜 {'' if end is None else end} s）"
+        self.stats.set_stats(results, note)
+
+    def refresh_stats(self):
+        datasets = self.datasets.checked_datasets()
+        channels = self.datasets.checked_channels()
+        if not datasets or not channels:
+            self.error("データセットとチャンネルにチェックを付けてください")
+            return
+        self.update_stats(DrawSpec(self.params.plot_type, datasets, channels, self.params.values()))
+        self.bottom_tabs.setCurrentWidget(self.stats)
+
+    def _on_tab_changed(self, index):
+        # グラフのタブを切り替えたら、そのグラフの統計量を表示する
+        tab = self.plots.widget(index)
+        if tab is not None:
+            self.update_stats(tab.spec)
+
+    def save_stats(self):
+        if not self.stats.stats:
+            self.error("保存する統計量がありません")
+            return
+        path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, "統計量を CSV で保存", os.path.join(self._last_dir, "stats.csv"), "CSV (*.csv)")
+        if not path:
+            return
+        try:
+            st.save_csv(self.stats.stats, path)
+        except Exception as e:
+            self.error(f"保存できません: {path}\n{e}")
+        else:
+            self.log(f"保存しました: {path}")
 
     def export_plot(self):
         tab = self.plots.current_tab()

@@ -23,9 +23,11 @@ rosbag (`.bag`) などのデータファイルから様々なグラフを作成�
 ./scripts/plot_Pose.py bags/xxx.bag /topic     # 既存スクリプトの例
 ```
 
-## 残作業
+## 残作業・ドキュメント
 
-今後の作業は `TODO.md` にまとめている。作業を始める前に確認し、終わったらチェックを付ける・新しい課題を追記する。
+- 今後の作業は `TODO.md` にまとめている。作業を始める前に確認し、終わったらチェックを付ける・新しい課題を追記する。
+- 利用者向けの使い方は `USAGE.md`。**アプリの機能を追加・変更・削除したら、同じ作業の中で `USAGE.md` も更新する**（画面の操作、設定項目、統計の列、ショートカットなど利用者から見える変更すべて）。
+- `README.md` は `scripts/` の説明。
 
 ## app/ の構成
 
@@ -39,6 +41,8 @@ app/
     loaders/
       bag.py         # list_topics / list_fields / load(パス文字列でフィールド指定) / load_pose / load_wrench
       npz.py         # load / save（scripts/ の npz と互換。付随情報は "__meta__" キーに JSON）
+    processing/
+      stats.py       # 統計量（平均, 標準偏差, 中央値, 最小/最大, 目標値との誤差・RMSE, 範囲内の割合）, CSV 保存
   plots/             # グラフ種類。fig に描くだけで、ファイル読込や plt.show() はしない
     base.py          # Param, PlotType, REGISTRY, @register
     style.py         # scripts/ から引き継いだ色・透明度・箱ひげ図の設定
@@ -46,16 +50,18 @@ app/
   gui/               # PyQt5
     qt.py            # Qt の import を集約（QT_API=pyqt5 を指定。Qt6 移行時はここを差し替える）
     jobs.py          # JobRunner: 別スレッドで処理し、コールバックはメインスレッドで呼ぶ
-    main_window.py   # 左: bag / データセット、中央: グラフタブ + ログ、右: グラフ設定
+    main_window.py   # 左: bag / データセット、中央: グラフタブ + ログ / 統計、右: グラフ設定
     source_panel.py  # bag → トピック → フィールドのツリー。チェックしたフィールドを読み込む
     dataset_panel.py # Dataset → チャンネルのツリー。チェックしたものを描画に使う
     param_panel.py   # PlotType.params から入力欄を自動生成。プリセット（JSON）の保存・読み込み
     plot_view.py     # グラフのタブ（キャンバス + ツールバー）。書き出しは figsize・dpi=300 で描き直す
+    stats_panel.py   # 中央下「統計」タブ。描画のたびに、そのグラフの設定値（targets/bands/start/end）で再計算
 ```
 
 - `app/` から `import core` / `import plots` する前提（`./app/main.py` 実行時は `app/` が sys.path に入る）。
 - `core/loaders/bag.py` は ROS 環境が必要。`core/loaders/__init__.py` では import しない。
-- bag の meta["target"] に入る目標値は npz の命名（`tx`, `troll` など = `"t" + チャンネル名`）。
+- bag の meta["target"] に入る目標値は npz の命名（`tx`, `troll` など = `"t" + チャンネル名`）。チャンネルの目標値は `Dataset.target_for(channel)` で引く。
+- 統計は PlotType の params のうち `targets`, `bands`, `use_file_target`, `start`, `end` を（あれば）使う。新しいグラフ種類でも同じ意味ならこのキー名にそろえる。
 - 新しいグラフ種類は `plots/` に `PlotType` のサブクラスを作り `@register` し、`plots/__init__.py` で import する。
 - bag の読み込みは大きい bag だと数秒以上かかる（0deg.bag の 277 メッセージのトピックで約 5 秒）。GUI では別スレッドで呼ぶ。
 - GUI から bag を読むなど時間のかかる処理は `JobRunner.submit` で実行する。ワーカースレッドから Qt のウィジェットを触らない。
