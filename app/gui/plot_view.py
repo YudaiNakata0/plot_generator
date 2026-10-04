@@ -34,6 +34,8 @@ class PlotTab(QtWidgets.QWidget):
 
     def draw_plot(self, spec):
         self.figure.clear()
+        # constrained_layout はグラフの種類ごとに draw() の中で設定する
+        self.figure.set_constrained_layout(False)
         try:
             spec.plot_type().draw(self.figure, spec.datasets, spec.channels, spec.params)
         except Exception:
@@ -55,7 +57,7 @@ class PlotTab(QtWidgets.QWidget):
         figure.savefig(path, dpi=SAVE_DPI)
 
     def _on_resize(self, event):
-        if self.figure.axes:
+        if self.figure.axes and not self.figure.get_constrained_layout():
             try:
                 self.figure.tight_layout()
             except ValueError:

@@ -47,6 +47,8 @@ class PlotType:
     name: ClassVar[str] = ""
     description: ClassVar[str] = ""
     params: ClassVar[list[Param]] = []
+    # 使うチャンネルの数 (最小, 最大)。最大が None なら上限なし
+    channel_count: ClassVar[tuple[int, int | None]] = (1, None)
 
     @classmethod
     def default_params(cls) -> dict:
@@ -95,7 +97,16 @@ def register(cls):
     return cls
 
 
-def check_channels(datasets, channels):
+def check_channels(datasets, channels, channel_count=(1, None)):
+    low, high = channel_count
+    if len(channels) < low or (high is not None and len(channels) > high):
+        if low == high:
+            expected = f"{low} つ"
+        elif high is None:
+            expected = f"{low} つ以上"
+        else:
+            expected = f"{low}〜{high} つ"
+        raise ValueError(f"チャンネルを{expected}選んでください（今は {len(channels)} つ: {channels}）")
     for ds in datasets:
         missing = [ch for ch in channels if ch not in ds]
         if missing:

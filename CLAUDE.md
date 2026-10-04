@@ -47,6 +47,7 @@ app/
     base.py          # Param, PlotType, REGISTRY, @register
     style.py         # scripts/ から引き継いだ色・透明度・箱ひげ図の設定
     timeseries.py    # 時系列（plot_Pose / plot_from_npz / record_WrenchStamped を統合）
+    trajectory2d.py  # 2D 軌跡（draw_trajectory.py の 2D から、時間で色付けした線・目標円・マーカー・カラーバー）
   gui/               # PyQt5
     qt.py            # Qt の import を集約（QT_API=pyqt5 を指定。Qt6 移行時はここを差し替える）
     jobs.py          # JobRunner: 別スレッドで処理し、コールバックはメインスレッドで呼ぶ
@@ -63,6 +64,8 @@ app/
 - bag の meta["target"] に入る目標値は npz の命名（`tx`, `troll` など = `"t" + チャンネル名`）。チャンネルの目標値は `Dataset.target_for(channel)` で引く。
 - 統計は PlotType の params のうち `targets`, `bands`, `use_file_target`, `start`, `end` を（あれば）使う。新しいグラフ種類でも同じ意味ならこのキー名にそろえる。
 - 新しいグラフ種類は `plots/` に `PlotType` のサブクラスを作り `@register` し、`plots/__init__.py` で import する。
+  使うチャンネル数は `channel_count = (最小, 最大)` で宣言し、`check_channels(datasets, channels, self.channel_count)` で検査する。
+- カラーバーを付ける図は `fig.set_constrained_layout(True)` を使う（`PlotTab` は描画前に constrained_layout を解除し、constrained_layout の図ではリサイズ時の tight_layout をしない）。
 - bag の読み込みは大きい bag だと数秒以上かかる（0deg.bag の 277 メッセージのトピックで約 5 秒）。GUI では別スレッドで呼ぶ。
 - GUI から bag を読むなど時間のかかる処理は `JobRunner.submit` で実行する。ワーカースレッドから Qt のウィジェットを触らない。
 - matplotlib 3.5.1 にはフォントのフォールバックが無いので、日本語を含む文字列には `plots/style.py` の `font_kwargs` / `legend_kwargs` を使う（英語だけの図は DejaVu Sans のまま）。

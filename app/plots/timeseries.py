@@ -51,7 +51,7 @@ class TimeSeriesPlot(PlotType):
 
     def draw(self, fig, datasets, channels, params):
         params = self.resolve_params(params)
-        check_channels(datasets, channels)
+        check_channels(datasets, channels, self.channel_count)
         if params["start"] is not None or params["end"] is not None:
             datasets = [ds.crop(params["start"], params["end"]) for ds in datasets]
 

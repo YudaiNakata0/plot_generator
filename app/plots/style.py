@@ -7,6 +7,11 @@ TARGET_BAND = dict(color="C1", alpha=0.2)
 
 # 時間で色付けする軌跡のカラーマップ
 TIME_CMAP = "viridis"
+# 目標領域（円）
+TARGET_AREA = dict(color="C1", alpha=0.2)
+# 軌跡の開始・終了のマーカー
+START_MARKER = dict(marker="o", color="black")
+END_MARKER = dict(marker="x", color="black")
 
 # 箱ひげ図（ひげ = 最小〜最大）
 BOXPLOT = dict(
