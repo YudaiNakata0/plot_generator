@@ -3,6 +3,7 @@ import os
 
 from core.loaders import npz
 from core.processing import stats as st
+from core.processing import transform
 
 from .dataset_panel import DatasetPanel
 from .jobs import JobRunner
@@ -11,6 +12,7 @@ from .plot_view import DrawSpec, PlotView
 from .qt import Qt, QtGui, QtWidgets
 from .source_panel import SourcePanel
 from .stats_panel import StatsPanel
+from .transform_dialog import TransformDialog
 
 OPEN_FILTER = "データファイル (*.bag *.npz);;rosbag (*.bag);;npz (*.npz);;すべて (*)"
 EXPORT_FILTER = "PNG (*.png);;PDF (*.pdf);;SVG (*.svg)"
@@ -83,6 +85,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.sources.load_requested.connect(self.load_bag_topic)
         self.datasets.selection_changed.connect(self.params.set_channels)
         self.datasets.save_requested.connect(self.save_dataset)
+        self.datasets.transform_requested.connect(self.open_transform_dialog)
         self.params.draw_requested.connect(self.draw)
         self.plots.currentChanged.connect(self._on_tab_changed)
         self.stats.refresh_requested.connect(self.refresh_stats)
@@ -180,6 +183,42 @@ class MainWindow(QtWidgets.QMainWindow):
             self.error(f"保存できません: {path}\n{e}")
         else:
             self.log(f"保存しました: {path}")
+
+    # ===== 座標変換 =====
+
+    def open_transform_dialog(self, dataset_id):
+        checked = self.datasets.checked_ids()
+        dialog = TransformDialog(self.datasets.get(dataset_id), len(checked), self)
+        if dialog.exec_() != QtWidgets.QDialog.Accepted:
+            return
+        settings = dialog.values()
+        ids = checked if settings["apply_all"] else [dataset_id]
+        self.apply_transform(ids, settings)
+
+    def apply_transform(self, dataset_ids, settings):
+        """座標変換をデータセットに適用し、チャンネルを追加する。成功した数を返す。"""
+        done = 0
+        for dataset_id in dataset_ids:
+            dataset = self.datasets.get(dataset_id)
+            try:
+                origin = settings["origin"]
+                if settings["origin_mode"] == "target":
+                    origin = transform.target_origin(dataset, settings["channels"])
+                    if origin is None:
+                        raise ValueError("目標値がありません（原点を「指定する」にしてください）")
+                result = transform.transform_position(
+                    dataset, settings["channels"], origin=origin,
+                    axis=settings["axis"], angle=settings["angle"], suffix=settings["suffix"],
+                )
+            except Exception as e:
+                self.error(f"座標変換できません: {dataset.name}: {e}")
+                continue
+            self.datasets.replace_dataset(dataset_id, result)
+            outputs = [ch + settings["suffix"] for ch in settings["channels"]]
+            self.log(f"座標変換: {dataset.name} → {', '.join(outputs)} "
+                     f"(原点 {origin}, 軸 {settings['axis']}, 角度 {settings['angle']} rad)")
+            done += 1
+        return done
 
     # ===== 描画 =====
 

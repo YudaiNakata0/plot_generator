@@ -15,6 +15,8 @@ class DatasetPanel(QtWidgets.QWidget):
     # チェック状態が変わった（描画に使うチャンネル名のリストを渡す）
     selection_changed = Signal(list)
     save_requested = Signal(object)
+    # 座標変換のダイアログを開く（右クリックしたデータセットの ID）
+    transform_requested = Signal(int)
     message = Signal(str)
 
     def __init__(self, parent=None):
@@ -41,16 +43,10 @@ class DatasetPanel(QtWidgets.QWidget):
 
         self.tree.blockSignals(True)
         item = QtWidgets.QTreeWidgetItem([dataset.name, f"{len(dataset)} 点"])
-        item.setToolTip(0, "\n".join(f"{k}: {v}" for k, v in dataset.meta.items() if k != "target"))
         item.setData(0, ROLE_ID, dataset_id)
         item.setFlags(item.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsEditable)
         item.setCheckState(0, Qt.Checked)
-        for channel in dataset.channel_names:
-            child = QtWidgets.QTreeWidgetItem([channel, dataset.unit(channel)])
-            child.setData(0, ROLE_CHANNEL, channel)
-            child.setFlags((child.flags() | Qt.ItemIsUserCheckable) & ~Qt.ItemIsEditable)
-            child.setCheckState(0, Qt.Unchecked)
-            item.addChild(child)
+        self._fill_children(item, dataset, checked=set())
         self.tree.addTopLevelItem(item)
         item.setExpanded(True)
         self.tree.blockSignals(False)
@@ -58,6 +54,28 @@ class DatasetPanel(QtWidgets.QWidget):
         self.message.emit(f"データセットを追加: {dataset.name} ({len(dataset)} 点, "
                           f"{len(dataset.channel_names)} チャンネル)")
         self.selection_changed.emit(self.checked_channels())
+
+    def replace_dataset(self, dataset_id, dataset):
+        """Dataset を差し替える（チャンネルの追加など）。チャンネルのチェック状態は名前で引き継ぐ。"""
+        item = self._item(dataset_id)
+        self._datasets[dataset_id] = dataset
+        self.tree.blockSignals(True)
+        checked = {
+            item.child(i).data(0, ROLE_CHANNEL) for i in range(item.childCount())
+            if item.child(i).checkState(0) == Qt.Checked
+        }
+        item.takeChildren()
+        item.setText(0, dataset.name)
+        item.setText(1, f"{len(dataset)} 点")
+        self._fill_children(item, dataset, checked)
+        self.tree.blockSignals(False)
+        self.selection_changed.emit(self.checked_channels())
+
+    def get(self, dataset_id):
+        return self._datasets[dataset_id]
+
+    def checked_ids(self):
+        return [self._id(item) for item in self._top_items() if item.checkState(0) == Qt.Checked]
 
     def datasets(self):
         return [self._datasets[self._id(item)] for item in self._top_items()]
@@ -94,6 +112,22 @@ class DatasetPanel(QtWidgets.QWidget):
         self.tree.blockSignals(False)
         self.selection_changed.emit(self.checked_channels())
 
+    @staticmethod
+    def _fill_children(item, dataset, checked):
+        item.setToolTip(0, "\n".join(f"{k}: {v}" for k, v in dataset.meta.items() if k != "target"))
+        for channel in dataset.channel_names:
+            child = QtWidgets.QTreeWidgetItem([channel, dataset.unit(channel)])
+            child.setData(0, ROLE_CHANNEL, channel)
+            child.setFlags((child.flags() | Qt.ItemIsUserCheckable) & ~Qt.ItemIsEditable)
+            child.setCheckState(0, Qt.Checked if channel in checked else Qt.Unchecked)
+            item.addChild(child)
+
+    def _item(self, dataset_id):
+        for item in self._top_items():
+            if self._id(item) == dataset_id:
+                return item
+        raise KeyError(f"no dataset id {dataset_id}")
+
     def _top_items(self):
         return [self.tree.topLevelItem(i) for i in range(self.tree.topLevelItemCount())]
 
@@ -128,6 +162,7 @@ class DatasetPanel(QtWidgets.QWidget):
         dataset = self._datasets[self._id(item)]
         menu = QtWidgets.QMenu(self)
         menu.addAction("名前を変更", lambda: self.tree.editItem(item, 0))
+        menu.addAction("座標変換...", lambda: self.transform_requested.emit(self._id(item)))
         menu.addAction("npz として保存...", lambda: self.save_requested.emit(dataset))
         menu.addSeparator()
         menu.addAction("削除", lambda: self._remove(item))

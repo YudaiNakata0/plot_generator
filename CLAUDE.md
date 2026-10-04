@@ -43,6 +43,7 @@ app/
       npz.py         # load / save（scripts/ の npz と互換。付随情報は "__meta__" キーに JSON）
     processing/
       stats.py       # 統計量（平均, 標準偏差, 中央値, 最小/最大, 目標値との誤差・RMSE, 範囲内の割合）, CSV 保存
+      transform.py   # 座標変換 p' = R_軸(角度)·(p − 原点)。接尾辞付きチャンネルと変換後の目標値を追加（draw_trajectory.py の -a -p と一致）
   plots/             # グラフ種類。fig に描くだけで、ファイル読込や plt.show() はしない
     base.py          # Param, PlotType, REGISTRY, @register
     style.py         # scripts/ から引き継いだ色・透明度・箱ひげ図の設定
@@ -57,11 +58,13 @@ app/
     param_panel.py   # PlotType.params から入力欄を自動生成。プリセット（JSON）の保存・読み込み
     plot_view.py     # グラフのタブ（キャンバス + ツールバー）。書き出しは figsize・dpi=300 で描き直す
     stats_panel.py   # 中央下「統計」タブ。描画のたびに、そのグラフの設定値（targets/bands/start/end）で再計算
+    transform_dialog.py # 座標変換のダイアログ（データセットの右クリック）。結果は DatasetPanel.replace_dataset で差し替え
 ```
 
 - `app/` から `import core` / `import plots` する前提（`./app/main.py` 実行時は `app/` が sys.path に入る）。
 - `core/loaders/bag.py` は ROS 環境が必要。`core/loaders/__init__.py` では import しない。
 - bag の meta["target"] に入る目標値は npz の命名（`tx`, `troll` など = `"t" + チャンネル名`）。チャンネルの目標値は `Dataset.target_for(channel)` で引く。
+- Dataset にチャンネルを足す処理（座標変換など）は、新しい Dataset を作って `DatasetPanel.replace_dataset(id, ds)` で差し替える（チャンネルのチェック状態は名前で引き継がれる）。変換の記録は meta["transforms"] に残す。
 - 統計は PlotType の params のうち `targets`, `bands`, `use_file_target`, `start`, `end` を（あれば）使う。新しいグラフ種類でも同じ意味ならこのキー名にそろえる。
 - 新しいグラフ種類は `plots/` に `PlotType` のサブクラスを作り `@register` し、`plots/__init__.py` で import する。
   使うチャンネル数は `channel_count = (最小, 最大)` で宣言し、`check_channels(datasets, channels, self.channel_count)` で検査する。
