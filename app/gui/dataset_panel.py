@@ -17,6 +17,8 @@ class DatasetPanel(QtWidgets.QWidget):
     save_requested = Signal(object)
     # 座標変換のダイアログを開く（右クリックしたデータセットの ID）
     transform_requested = Signal(int)
+    # 誤差計算のダイアログを開く（右クリックしたデータセットの ID）
+    error_requested = Signal(int)
     message = Signal(str)
 
     def __init__(self, parent=None):
@@ -33,9 +35,18 @@ class DatasetPanel(QtWidgets.QWidget):
                                   | QtWidgets.QAbstractItemView.EditKeyPressed)
         self.tree.header().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
 
+        clear_button = QtWidgets.QPushButton("すべて削除")
+        clear_button.setToolTip("データセットをすべて削除する（描画済みのグラフは残る）")
+        clear_button.clicked.connect(self.confirm_clear)
+
+        bottom = QtWidgets.QHBoxLayout()
+        bottom.addStretch(1)
+        bottom.addWidget(clear_button)
+
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.tree)
+        layout.addLayout(bottom)
 
     def add_dataset(self, dataset):
         dataset_id = next(self._ids)
@@ -153,9 +164,34 @@ class DatasetPanel(QtWidgets.QWidget):
         self.tree.takeTopLevelItem(self.tree.indexOfTopLevelItem(item))
         self.selection_changed.emit(self.checked_channels())
 
+    def clear(self):
+        """データセットをすべて削除する。"""
+        count = len(self._datasets)
+        if count == 0:
+            return
+        self._datasets.clear()
+        self.tree.clear()
+        self.message.emit(f"データセットをすべて削除しました ({count} 個)")
+        self.selection_changed.emit(self.checked_channels())
+
+    def confirm_clear(self):
+        # 座標変換などで追加したチャンネルも消えるので確認する
+        if not self._datasets:
+            return
+        answer = QtWidgets.QMessageBox.question(
+            self, "すべて削除",
+            f"データセット {len(self._datasets)} 個をすべて削除しますか？\n"
+            "（保存していない変更・追加したチャンネルも消えます）")
+        if answer == QtWidgets.QMessageBox.Yes:
+            self.clear()
+
     def _show_menu(self, pos):
         item = self.tree.itemAt(pos)
         if item is None:
+            if self._datasets:
+                menu = QtWidgets.QMenu(self)
+                menu.addAction("すべて削除...", self.confirm_clear)
+                menu.exec_(self.tree.viewport().mapToGlobal(pos))
             return
         if item.parent() is not None:
             item = item.parent()
@@ -163,7 +199,9 @@ class DatasetPanel(QtWidgets.QWidget):
         menu = QtWidgets.QMenu(self)
         menu.addAction("名前を変更", lambda: self.tree.editItem(item, 0))
         menu.addAction("座標変換...", lambda: self.transform_requested.emit(self._id(item)))
+        menu.addAction("誤差の計算...", lambda: self.error_requested.emit(self._id(item)))
         menu.addAction("npz として保存...", lambda: self.save_requested.emit(dataset))
         menu.addSeparator()
         menu.addAction("削除", lambda: self._remove(item))
+        menu.addAction("すべて削除...", self.confirm_clear)
         menu.exec_(self.tree.viewport().mapToGlobal(pos))

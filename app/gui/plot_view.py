@@ -80,6 +80,15 @@ class PlotView(QtWidgets.QTabWidget):
     def current_tab(self):
         return self.currentWidget()
 
+    def tabs(self):
+        return [self.widget(i) for i in range(self.count())]
+
+    def clear_tabs(self):
+        """グラフのタブをすべて閉じて、空のタブを 1 つにする。"""
+        # 最後のタブを閉じると _close_tab が空のタブを作る
+        for _ in range(self.count()):
+            self._close_tab(0)
+
     def _close_tab(self, index):
         widget = self.widget(index)
         self.removeTab(index)

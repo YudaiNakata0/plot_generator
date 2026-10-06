@@ -3,7 +3,7 @@ import os
 
 from core.loaders import npz
 from core.processing import stats as st
-from core.processing import transform
+from core.processing import error, transform
 
 from .dataset_panel import DatasetPanel
 from .jobs import JobRunner
@@ -12,6 +12,7 @@ from .plot_view import DrawSpec, PlotView
 from .qt import Qt, QtGui, QtWidgets
 from .source_panel import SourcePanel
 from .stats_panel import StatsPanel
+from .error_dialog import ErrorDialog
 from .transform_dialog import TransformDialog
 
 OPEN_FILTER = "データファイル (*.bag *.npz);;rosbag (*.bag);;npz (*.npz);;すべて (*)"
@@ -86,6 +87,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.datasets.selection_changed.connect(self.params.set_channels)
         self.datasets.save_requested.connect(self.save_dataset)
         self.datasets.transform_requested.connect(self.open_transform_dialog)
+        self.datasets.error_requested.connect(self.open_error_dialog)
         self.params.draw_requested.connect(self.draw)
         self.plots.currentChanged.connect(self._on_tab_changed)
         self.stats.refresh_requested.connect(self.refresh_stats)
@@ -104,6 +106,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def _setup_menu(self):
         file_menu = self.menuBar().addMenu("ファイル(&F)")
         self._add_action(file_menu, "開く...", self.open_dialog, QtGui.QKeySequence.Open)
+        self._add_action(file_menu, "bag をすべて閉じる", self.sources.clear)
+        self._add_action(file_menu, "データセットをすべて削除...", self.datasets.confirm_clear)
+        self._add_action(file_menu, "すべてクリア...", self.confirm_clear_all, "Ctrl+Shift+W")
         file_menu.addSeparator()
         self._add_action(file_menu, "プリセットを読み込む...", self.load_preset)
         self._add_action(file_menu, "プリセットを保存...", self.save_preset)
@@ -163,6 +168,26 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.error(f"対応していない形式です: {path}")
 
+    def clear_all(self):
+        """bag・データセット・グラフのタブ・統計をすべて消して、起動直後の状態に戻す。"""
+        self.sources.clear()
+        self.datasets.clear()
+        self.plots.clear_tabs()
+        self.update_stats(None)
+        if self.jobs.running:
+            self.log("読み込み中の処理は続いています。終わるとデータセットに追加されます")
+
+    def confirm_clear_all(self):
+        if not (self.sources.bag_count() or self.datasets.datasets()
+                or any(tab.spec is not None for tab in self.plots.tabs())):
+            return
+        answer = QtWidgets.QMessageBox.question(
+            self, "すべてクリア",
+            "開いている bag、データセット、グラフをすべて消しますか？\n"
+            "（グラフ設定はそのまま残ります）")
+        if answer == QtWidgets.QMessageBox.Yes:
+            self.clear_all()
+
     def load_bag_topic(self, path, topic, mode, fields, time_source):
         self.log(f"読み込み開始: {os.path.basename(path)} {topic}")
         self.jobs.submit(
@@ -217,6 +242,43 @@ class MainWindow(QtWidgets.QMainWindow):
             outputs = [ch + settings["suffix"] for ch in settings["channels"]]
             self.log(f"座標変換: {dataset.name} → {', '.join(outputs)} "
                      f"(原点 {origin}, 軸 {settings['axis']}, 角度 {settings['angle']} rad)")
+            done += 1
+        return done
+
+    # ===== 誤差の計算 =====
+
+    def open_error_dialog(self, dataset_id):
+        checked = self.datasets.checked_ids()
+        dialog = ErrorDialog(self.datasets.get(dataset_id), len(checked), self)
+        if dialog.exec_() != QtWidgets.QDialog.Accepted:
+            return
+        settings = dialog.values()
+        ids = checked if settings["apply_all"] else [dataset_id]
+        self.apply_error(ids, settings)
+
+    def apply_error(self, dataset_ids, settings):
+        """誤差のチャンネルをデータセットに追加する。成功した数を返す。"""
+        kind, channels, output = settings["kind"], settings["channels"], settings["output"]
+        done = 0
+        for dataset_id in dataset_ids:
+            dataset = self.datasets.get(dataset_id)
+            try:
+                if kind == "axis":
+                    result = error.axis_errors(dataset, channels, settings["targets"], suffix=output)
+                    outputs = [ch + output for ch in channels]
+                elif kind == "position":
+                    result = error.position_error(dataset, channels, settings["targets"], name=output)
+                    outputs = [output]
+                else:
+                    result = error.orientation_error(dataset, channels, settings["targets"], name=output)
+                    outputs = [output]
+            except Exception as e:
+                self.error(f"誤差を計算できません: {dataset.name}: {e}")
+                continue
+            self.datasets.replace_dataset(dataset_id, result)
+            targets = result.meta["errors"][-1]["targets"]
+            self.log(f"誤差の計算 ({kind}): {dataset.name} → {', '.join(outputs)} "
+                     f"(入力 {', '.join(channels)}, 目標値 {targets})")
             done += 1
         return done
 

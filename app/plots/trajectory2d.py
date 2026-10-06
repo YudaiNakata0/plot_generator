@@ -3,6 +3,7 @@
 scripts/draw_trajectory.py の 2D モードから、時間で色付けした軌跡・目標円・開始/終了マーカー・
 カラーバーを移植したもの。チェックした 2 チャンネルを横軸・縦軸にする（並び順で先が横軸）。
 複数のデータセットは横に並べ、縮尺（表示幅）と時間の色の範囲を揃える。各パネルの中心はそれぞれの目標かデータの中心。
+既定では中心を引いた値（中心との差）で描き、図の中心が (0, 0) になる（draw_trajectory.py の -a で x - tx などを描いていたのと同じ）。
 
 傾いた壁面への回転は座標変換（予定）、実寸の幅の帯・3D は未実装（TODO.md を参照）。
 """
@@ -36,6 +37,8 @@ class Trajectory2DPlot(PlotType):
               help="表示の中心 ± この値を表示する。空欄なら全データが入るように自動で決める（全パネル共通の幅）"),
         Param("center", str, "目標", label="表示の中心", choices=("目標", "データ"),
               help="各パネルの表示の中心。目標値が無いときはデータの中心になる"),
+        Param("relative", bool, True, label="中心を (0, 0) にする",
+              help="目盛りを実際の値ではなく、表示の中心との差にする。オフなら実際の値"),
         Param("tick", float, label="目盛り間隔", help="空欄なら自動"),
         Param("swap", bool, False, label="縦横を入れ替える"),
         Param("invert_x", bool, False, label="横軸を反転",
@@ -65,15 +68,26 @@ class Trajectory2DPlot(PlotType):
 
         lc = None
         centers = []
+        extents = []
         for ax, ds in zip(axes, datasets):
             x, y = ds[h], ds[v]
+            target = self._target(ds, h, v, params)
+            center = self._center(x, y, target, params)
+            if params["relative"]:
+                # 中心との差で描く（図の中心が (0, 0) になる）
+                x, y = x - center[0], y - center[1]
+                if target is not None:
+                    target = (target[0] - center[0], target[1] - center[1])
+                center = (0.0, 0.0)
+            centers.append(center)
+            extents.append(self._extent(x, y, target, center, params))
+
             points = np.array([x, y]).T.reshape(-1, 1, 2)
             segments = np.concatenate([points[:-1], points[1:]], axis=1)
             lc = LineCollection(segments, cmap=style.TIME_CMAP, norm=norm, linewidth=2.0)
             lc.set_array(ds.time[:-1])
             ax.add_collection(lc)
 
-            target = self._target(ds, h, v, params)
             if target is not None and params["radius"] is not None:
                 ax.add_patch(Circle(target, params["radius"], label="target area", **style.TARGET_AREA))
             if params["markers"]:
@@ -92,10 +106,7 @@ class Trajectory2DPlot(PlotType):
             if params["legend"] and ax.get_legend_handles_labels()[1]:
                 ax.legend(**style.legend_kwargs(ax))
 
-            data_center = ((np.nanmax(x) + np.nanmin(x)) / 2, (np.nanmax(y) + np.nanmin(y)) / 2)
-            centers.append(target if params["center"] == "目標" and target is not None else data_center)
-
-        self._set_limits(axes, datasets, h, v, centers, params)
+        self._set_limits(axes, centers, extents, params)
 
         if params["colorbar"]:
             cbar = fig.colorbar(lc, ax=list(axes))
@@ -117,11 +128,29 @@ class Trajectory2DPlot(PlotType):
         return tuple(center)
 
     @staticmethod
+    def _center(x, y, target, params):
+        """表示の中心 (横, 縦)。「目標」でも目標値が無ければデータの範囲の中心。"""
+        if params["center"] == "目標" and target is not None:
+            return target
+        return ((np.nanmax(x) + np.nanmin(x)) / 2, (np.nanmax(y) + np.nanmin(y)) / 2)
+
+    @staticmethod
     def _label(ds, channel):
         unit = ds.unit(channel)
         return f"{channel} [{unit}]" if unit else channel
 
-    def _set_limits(self, axes, datasets, h, v, centers, params):
+    @staticmethod
+    def _extent(x, y, target, center, params):
+        """中心から、データ（と目標円）の一番遠い点までの距離（縦横の大きい方）。"""
+        cx, cy = center
+        extent = max(np.nanmax(np.abs(x - cx)), np.nanmax(np.abs(y - cy)))
+        if target is not None and params["radius"] is not None:
+            extent = max(extent, abs(target[0] - cx) + params["radius"],
+                         abs(target[1] - cy) + params["radius"])
+        return extent
+
+    @staticmethod
+    def _set_limits(axes, centers, extents, params):
         """全パネルを同じ縮尺（同じ表示幅）にし、各パネルはそれぞれの中心で表示する。
 
         データセットごとに目標位置が大きく違っても、各軌跡が見えるようにするため。
@@ -129,16 +158,8 @@ class Trajectory2DPlot(PlotType):
         """
         half = params["half_range"]
         if half is None:
-            # 各パネルの中心から、データ（と目標円）の一番遠い点までが入る幅を共通にする
-            needed = []
-            for ds, (cx, cy) in zip(datasets, centers):
-                extent = max(np.nanmax(np.abs(ds[h] - cx)), np.nanmax(np.abs(ds[v] - cy)))
-                target = self._target(ds, h, v, params)
-                if target is not None and params["radius"] is not None:
-                    extent = max(extent, abs(target[0] - cx) + params["radius"],
-                                 abs(target[1] - cy) + params["radius"])
-                needed.append(extent)
-            half = max(needed) * (1 + MARGIN) or 1.0
+            # 一番遠い点が入るパネルに合わせて、全パネル共通の幅にする
+            half = max(extents) * (1 + MARGIN) or 1.0
 
         for ax, (cx, cy) in zip(axes, centers):
             xlim = (cx - half, cx + half)

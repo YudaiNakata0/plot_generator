@@ -43,6 +43,7 @@ app/
       npz.py         # load / save（scripts/ の npz と互換。付随情報は "__meta__" キーに JSON）
     processing/
       stats.py       # 統計量（平均, 標準偏差, 中央値, 最小/最大, 目標値との誤差・RMSE, 範囲内の割合）, CSV 保存
+      error.py       # 誤差チャンネル: 各軸の誤差, 位置誤差 r, 姿勢誤差 θ（roll/pitch/yaw → クォータニオン → 回転角）。目標値 0 を meta に設定
       transform.py   # 座標変換 p' = R_軸(角度)·(p − 原点)。接尾辞付きチャンネルと変換後の目標値を追加（draw_trajectory.py の -a -p と一致）
   plots/             # グラフ種類。fig に描くだけで、ファイル読込や plt.show() はしない
     base.py          # Param, PlotType, REGISTRY, @register
@@ -58,6 +59,7 @@ app/
     param_panel.py   # PlotType.params から入力欄を自動生成。プリセット（JSON）の保存・読み込み
     plot_view.py     # グラフのタブ（キャンバス + ツールバー）。書き出しは figsize・dpi=300 で描き直す
     stats_panel.py   # 中央下「統計」タブ。描画のたびに、そのグラフの設定値（targets/bands/start/end）で再計算
+    error_dialog.py  # 誤差計算のダイアログ（データセットの右クリック）。結果は DatasetPanel.replace_dataset で差し替え
     transform_dialog.py # 座標変換のダイアログ（データセットの右クリック）。結果は DatasetPanel.replace_dataset で差し替え
 ```
 

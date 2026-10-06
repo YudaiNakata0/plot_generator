@@ -46,9 +46,14 @@ class SourcePanel(QtWidgets.QWidget):
         load_button = QtWidgets.QPushButton("チェックしたフィールドを読み込む")
         load_button.clicked.connect(self.load_checked)
 
+        clear_button = QtWidgets.QPushButton("すべて閉じる")
+        clear_button.setToolTip("開いている bag をすべて閉じる（読み込んだデータセットは残る）")
+        clear_button.clicked.connect(self.clear)
+
         bottom = QtWidgets.QHBoxLayout()
         bottom.addWidget(QtWidgets.QLabel("時刻:"))
         bottom.addWidget(self.time_source, 1)
+        bottom.addWidget(clear_button)
 
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -75,7 +80,23 @@ class SourcePanel(QtWidgets.QWidget):
             on_error=lambda msg: self._on_error(item, f"bag を開けません: {path}", msg),
         )
 
+    def bag_count(self):
+        return self.tree.topLevelItemCount()
+
+    def clear(self):
+        """開いている bag をすべて閉じる。"""
+        count = self.tree.topLevelItemCount()
+        if count == 0:
+            return
+        # tree.clear() だと項目が削除され、取得中のトピック・フィールド一覧のコールバックが
+        # 削除済みの項目を触ってしまうので、取り外すだけにする
+        while self.tree.topLevelItemCount():
+            self.tree.takeTopLevelItem(0)
+        self.message.emit(f"bag をすべて閉じました ({count} 個)")
+
     def _set_topics(self, file_item, topics):
+        if file_item.treeWidget() is None:
+            return  # 一覧の取得中に閉じられた
         file_item.setText(1, f"{len(topics)} トピック")
         path = file_item.data(0, ROLE_PATH)
         for info in topics.values():
@@ -178,9 +199,12 @@ class SourcePanel(QtWidgets.QWidget):
 
     def _show_menu(self, pos):
         item = self.tree.itemAt(pos)
-        if item is None:
-            return
         menu = QtWidgets.QMenu(self)
+        if item is None:
+            action = menu.addAction("すべて閉じる", self.clear)
+            action.setEnabled(self.bag_count() > 0)
+            menu.exec_(self.tree.viewport().mapToGlobal(pos))
+            return
         kind = item.data(0, ROLE_KIND)
         if kind == KIND_FIELD:
             item = item.parent()
@@ -200,4 +224,5 @@ class SourcePanel(QtWidgets.QWidget):
         elif kind == KIND_FILE:
             menu.addAction("閉じる", lambda: self.tree.takeTopLevelItem(
                 self.tree.indexOfTopLevelItem(item)))
+            menu.addAction("すべて閉じる", self.clear)
         menu.exec_(self.tree.viewport().mapToGlobal(pos))
