@@ -1,0 +1,325 @@
+experiments:
+  2026-09-23-13-16-24:
+    hole_radius: 2.5
+    wall_angle: 0
+    task_start: 150
+    task_end: 170
+    target_position:
+      x: 0.414
+      y: 0.275
+      z: 0.932
+    special_notes: []
+
+  2026-10-01-10-22-07:
+    hole_radius: 2.5
+    wall_angle: 0
+    task_start: 132
+    task_end: 152
+    target_position:
+      x: 0.416
+      y: 0.285
+      z: 1.025
+    special_notes: []
+
+  2026-10-02-10-22-26:
+    hole_radius: 2.5
+    wall_angle: 0
+    task_start: 140
+    task_end: 160
+    target_position:
+      x: 0.417
+      y: 0.280
+      z: 1.025
+    special_notes: []
+
+  2026-09-25-11-38-22:
+    hole_radius: 2.5
+    wall_angle: 10
+    task_start: 160
+    task_end: 180
+    target_position:
+      x: 0.403
+      y: 0.275
+      z: 1.018
+    special_notes: []
+
+  2026-09-26-10-48-44:
+    hole_radius: 2.5
+    wall_angle: 10
+    task_start: 140
+    task_end: 160
+    target_position:
+      x: 0.407
+      y: 0.275
+      z: 1.015
+    special_notes: []
+
+  2026-09-30-09-47-36:
+    hole_radius: 2.5
+    wall_angle: -10
+    task_start: 130
+    task_end: 150
+    target_position:
+      x: 0.425
+      y: 0.280
+      z: 1.020
+    special_notes: []
+
+  2026-09-30-10-19-01:
+    hole_radius: 2.5
+    wall_angle: -10
+    task_start: 130
+    task_end: 150
+    target_position:
+      x: 0.425
+      y: 0.280
+      z: 1.020
+    special_notes: []
+
+  2026-09-30-10-45-31:
+    hole_radius: 2.5
+    wall_angle: -10
+    task_start: 150
+    task_end: 170
+    target_position:
+      x: 0.425
+      y: 0.280
+      z: 1.020
+    special_notes: []
+
+  2026-10-06-11-07-14:
+    hole_radius: 2.5
+    wall_angle: 20
+    task_start: 155
+    task_end: 175
+    target_position:
+      x: 0.385
+      y: 0.290
+      z: 0.992
+    special_notes: []
+
+  2026-10-07-09-41-36:
+    hole_radius: 2.5
+    wall_angle: 20
+    task_start: 130
+    task_end: 150
+    target_position:
+      x: 0.395
+      y: 0.310
+      z: 0.990
+    special_notes: []
+
+  2026-10-07-09-57-41:
+    hole_radius: 2.5
+    wall_angle: 20
+    task_start: 140
+    task_end: 160
+    target_position:
+      x: 0.395
+      y: 0.310
+      z: 0.990
+    special_notes: []
+
+  2026-09-18-11-17-34:
+    hole_radius: 3.5
+    wall_angle: 0
+    task_start: 150
+    task_end: 190
+    target_position:
+      x: 0.420
+      y: 0.278
+      z: 0.935
+    special_notes: []
+
+  2026-09-23-11-10-54:
+    hole_radius: 3.5
+    wall_angle: 0
+    task_start: 155
+    task_end: 195
+    target_position:
+      x: 0.413
+      y: 0.285
+      z: 0.935
+    special_notes: []
+
+  2026-10-02-10-36-06:
+    hole_radius: 3.5
+    wall_angle: 0
+    task_start: 145
+    task_end: 185
+    target_position:
+      x: 0.417
+      y: 0.285
+      z: 1.035
+    special_notes: []
+
+  2026-09-29-10-17-15:
+    hole_radius: 3.5
+    wall_angle: 10
+    task_start: 160
+    task_end: 200
+    target_position:
+      x: 0.403
+      y: 0.275
+      z: 1.015
+    special_notes: []
+
+  2026-09-29-11-26-21:
+    hole_radius: 3.5
+    wall_angle: 10
+    task_start: 160
+    task_end: 200
+    target_position:
+      x: 0.403
+      y: 0.280
+      z: 1.015
+    special_notes: []
+
+  2026-10-01-09-45-12:
+    hole_radius: 3.5
+    wall_angle: 10
+    task_start: 110
+    task_end: 150
+    target_position:
+      x: 0.400
+      y: 0.288
+      z: 1.010
+    special_notes: []
+
+  2026-09-30-11-15-16:
+    hole_radius: 3.5
+    wall_angle: -10
+    task_start: 125
+    task_end: 165
+    target_position:
+      x: 0.425
+      y: 0.280
+      z: 1.020
+    special_notes: []
+
+  2026-09-30-11-34-46:
+    hole_radius: 3.5
+    wall_angle: -10
+    task_start: 130
+    task_end: 170
+    target_position:
+      x: 0.425
+      y: 0.280
+      z: 1.020
+    special_notes: []
+
+  2026-10-01-08-54-59:
+    hole_radius: 3.5
+    wall_angle: -10
+    task_start: 110
+    task_end: 150
+    target_position:
+      x: 0.425
+      y: 0.288
+      z: 1.015
+    special_notes: []
+
+  2026-10-02-10-47-20:
+    hole_radius: 5.0
+    wall_angle: 0
+    task_start: 105
+    task_end: 185
+    target_position:
+      x: 0.415
+      y: 0.285
+      z: 1.032
+    special_notes: []
+
+  2026-10-03-09-25-30:
+    hole_radius: 5.0
+    wall_angle: 0
+    task_start: 80
+    task_end: 160
+    target_position:
+      x: 0.415
+      y: 0.288
+      z: 1.025
+    special_notes: []
+
+  2026-10-03-10-15-30:
+    hole_radius: 5.0
+    wall_angle: 0
+    task_start: 100
+    task_end: 180
+    target_position:
+      x: 0.415
+      y: 0.288
+      z: 1.025
+    special_notes: []
+
+  2026-10-04-11-47-38:
+    hole_radius: 2.5
+    wall_angle: 0
+    task_start: 125
+    task_end: 185
+    target_position:
+      x: 0.427
+      y: 0.285
+      z: 1.022
+    special_notes:
+      - "use filament"
+
+  2026-10-04-12-06-20:
+    hole_radius: 2.5
+    wall_angle: 0
+    task_start: 165
+    task_end: 225
+    target_position:
+      x: 0.427
+      y: 0.285
+      z: 1.025
+    special_notes:
+      - "use filament"
+
+  2026-10-04-12-34-02:
+    hole_radius: 2.5
+    wall_angle: 0
+    task_start: null
+    task_end: null
+    target_position:
+      x: null
+      y: null
+      z: null
+    special_notes:
+      - "use filament"
+
+  2026-10-04-14-40-40:
+    hole_radius: 3.5
+    wall_angle: 0
+    task_start: null
+    task_end: null
+    target_position:
+      x: null
+      y: null
+      z: null
+    special_notes:
+      - "use filament"
+
+  2026-10-04-14-56-18:
+    hole_radius: 3.5
+    wall_angle: 0
+    task_start: null
+    task_end: null
+    target_position:
+      x: null
+      y: null
+      z: null
+    special_notes:
+      - "use filament"
+
+  2026-10-04-15-25-23:
+    hole_radius: 3.5
+    wall_angle: 0
+    task_start: null
+    task_end: null
+    target_position:
+      x: null
+      y: null
+      z: null
+    special_notes:
+      - "use filament"
