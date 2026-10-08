@@ -29,7 +29,7 @@ class Trajectory2DPlot(PlotType):
         Param("targets", float, label="目標値（目標円の中心）", per_channel=True),
         Param("use_file_target", bool, True, label="ファイルの目標値を使う",
               help="目標値が未入力のチャンネルは、npz の ty, tz などの値を使う"),
-        Param("radius", float, label="目標円の半径", unit="m",
+        Param("diameter", float, label="目標円の直径", unit="m",
               help="空欄なら目標円を描かない。円の中心には目標値を使う"),
         Param("start", float, label="開始", unit="s"),
         Param("end", float, label="終了", unit="s"),
@@ -88,8 +88,8 @@ class Trajectory2DPlot(PlotType):
             lc.set_array(ds.time[:-1])
             ax.add_collection(lc)
 
-            if target is not None and params["radius"] is not None:
-                ax.add_patch(Circle(target, params["radius"], label="target area", **style.TARGET_AREA))
+            if target is not None and params["diameter"] is not None:
+                ax.add_patch(Circle(target, params["diameter"] / 2, label="target area", **style.TARGET_AREA))
             if params["markers"]:
                 ax.scatter(x[0], y[0], label="start", **style.START_MARKER)
                 ax.scatter(x[-1], y[-1], label="end", **style.END_MARKER)
@@ -144,9 +144,10 @@ class Trajectory2DPlot(PlotType):
         """中心から、データ（と目標円）の一番遠い点までの距離（縦横の大きい方）。"""
         cx, cy = center
         extent = max(np.nanmax(np.abs(x - cx)), np.nanmax(np.abs(y - cy)))
-        if target is not None and params["radius"] is not None:
-            extent = max(extent, abs(target[0] - cx) + params["radius"],
-                         abs(target[1] - cy) + params["radius"])
+        if target is not None and params["diameter"] is not None:
+            radius = params["diameter"] / 2
+            extent = max(extent, abs(target[0] - cx) + radius,
+                         abs(target[1] - cy) + radius)
         return extent
 
     @staticmethod
