@@ -1,5 +1,10 @@
+storage/
+__pycache__/
+*build/
+*dist/
+*trial_output/
+
 *.bag
 *.vscode
-storage/
 *.pyc
-__pycache__/
+*.spec

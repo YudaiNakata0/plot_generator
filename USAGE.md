@@ -17,6 +17,88 @@ rosbag（`.bag`）や npz（`.npz`）のデータからグラフを作る GUI �
 必要な環境: Ubuntu 22.04、Python 3.10、ROS1（ROS One）、PyQt5（`sudo apt install python3-pyqt5`）。
 日本語をグラフに使う場合は日本語フォント（`fonts-ipaexfont` など）を入れてください。
 
+## GUIを使わない画像出力
+
+`app/plot_cli.py` を使うと、GUIを起動せずにJSON設定から画像を出力できます。
+設定ファイル内の相対パスは、設定JSONが置かれたディレクトリから解決されます。
+
+```bash
+python3 app/plot_cli.py path/to/plot.json
+```
+
+設定例（NPZの時系列）:
+
+```json
+{
+  "inputs": [
+    {"path": "data/endeffector_pose.npz"}
+  ],
+  "plot": {
+    "type": "時系列",
+    "channels": ["x", "y", "z"],
+    "params": {
+      "targets": {"x": 0.1, "y": 0.0, "z": 0.2},
+      "bands": {"x": 0.01, "y": 0.01, "z": 0.01},
+      "start": 0,
+      "end": 10,
+      "title": "位置"
+    }
+  },
+  "output": {"path": "figures/position.png", "dpi": 300},
+  "statistics": {"path": "figures/position_stats.csv"}
+}
+```
+
+`statistics` を指定すると、画像と同じデータセット・チャンネル・`start` / `end`・`targets`・`bands` の条件で統計値をCSV保存します。`statistics` はパス文字列でも指定できます。`use_file_target` もGUIと同じく利用され、既定ではNPZやbagに含まれる目標値を使います。統計CSVが不要な場合は、この項目を省略してください。
+
+`inputs` は複数指定できます。NPZは文字列だけでも指定できます。
+複数のNPZを比較する場合は、次のように名前を付けられます。
+
+```json
+"inputs": [
+  {"path": "data/0deg.npz", "name": "0 deg"},
+  {"path": "data/10deg.npz", "name": "10 deg"}
+]
+```
+
+bagはPose/Wrenchの既知型、または任意フィールドに対応します。
+
+```json
+{
+  "inputs": [
+    {
+      "path": "bags/experiment.bag",
+      "topic": "/endeffector_pose",
+      "mode": "pose",
+      "time_source": "receive",
+      "name": "experiment"
+    }
+  ],
+  "plot": {"type": "時系列", "channels": ["x", "y", "z"]},
+  "output": {"path": "figures/experiment.png"}
+}
+```
+
+任意フィールドを読む場合は、`mode` を `fields`（既定値）にして `fields` を指定します。
+
+```json
+{
+  "inputs": [
+    {
+      "path": "bags/experiment.bag",
+      "topic": "/imu",
+      "mode": "fields",
+      "fields": ["linear_acceleration.x", "linear_acceleration.y"]
+    }
+  ],
+  "plot": {"type": "時系列", "channels": ["linear_acceleration.x"]},
+  "output": {"path": "figures/acceleration.png"}
+}
+```
+
+利用できるプロット種類は現在 `時系列` と `軌跡 (2D)` です。設定項目はGUIの設定欄と同じ名前を使います。
+bagを入力する場合はROS環境をsourceした状態で実行してください。
+
 ## 画面構成
 
 ```
