@@ -145,11 +145,14 @@ def render(config, config_path):
             statistics = {"path": statistics}
         if not isinstance(statistics, dict) or not statistics.get("path"):
             raise ValueError("statistics.path が必要です")
+        statistics_channels = statistics.get("channels", channels)
+        if not isinstance(statistics_channels, list) or not statistics_channels:
+            raise ValueError("statistics.channels は統計するチャンネルの配列にしてください")
         statistics_path = _path(statistics["path"], base)
         statistics_path.parent.mkdir(parents=True, exist_ok=True)
         results = stats_processing.dataset_stats(
             datasets,
-            channels,
+            statistics_channels,
             targets=resolved.get("targets"),
             bands=resolved.get("bands"),
             use_file_target=resolved.get("use_file_target", True),

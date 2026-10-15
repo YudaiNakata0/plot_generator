@@ -49,7 +49,29 @@ python3 app/plot_cli.py path/to/plot.json
 }
 ```
 
-`statistics` を指定すると、画像と同じデータセット・チャンネル・`start` / `end`・`targets`・`bands` の条件で統計値をCSV保存します。`statistics` はパス文字列でも指定できます。`use_file_target` もGUIと同じく利用され、既定ではNPZやbagに含まれる目標値を使います。統計CSVが不要な場合は、この項目を省略してください。
+`statistics` を指定すると、画像と同じデータセット・`start` / `end`・`targets`・`bands` の条件で統計値をCSV保存します。通常は画像の `plot.channels` が統計対象になりますが、`statistics.channels` を指定すると統計だけ別のチャンネルにできます。例えば、2D軌跡を `y,z` で描きながら、統計CSVには `x,y,z` を出力できます。
+
+```json
+{
+  "plot": {
+    "type": "軌跡 (2D)",
+    "channels": ["y", "z"],
+    "params": {
+      "targets": {"x": 0.4, "y": 0.28, "z": 1.02},
+      "use_file_target": false,
+      "start": 120,
+      "end": 160
+    }
+  },
+  "output": {"path": "figures/trajectory.png"},
+  "statistics": {
+    "path": "stats/trajectory.csv",
+    "channels": ["x", "y", "z"]
+  }
+}
+```
+
+`statistics` はパス文字列でも指定できます。`use_file_target` もGUIと同じく利用され、既定ではNPZやbagに含まれる目標値を使います。`statistics.channels` に指定したチャンネルがデータセットに無い場合、そのチャンネルはCSVからスキップされます。統計CSVが不要な場合は、`statistics` 項目を省略してください。
 
 `inputs` は複数指定できます。NPZは文字列だけでも指定できます。
 複数のNPZを比較する場合は、次のように名前を付けられます。
