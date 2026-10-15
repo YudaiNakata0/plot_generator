@@ -1,0 +1,64 @@
+{
+  "experiment": {
+    "target_diameter": 7,
+    "wall_angle": 0,
+    "task_start": 160,
+    "task_end": 260,
+    "target_position": {
+      "x": 0.428,
+      "y": 0.283,
+      "z": 1.025
+    },
+    "special_notes": [
+      "use filament"
+    ]
+  },
+  "inputs": [
+    {
+      "path": "~/rosbag/for_analysis/2026-10-04-15-25-23_new.bag",
+      "type": "bag",
+      "topic": "/gimbalrotor/endeffector_pose_new",
+      "mode": "pose",
+      "time_source": "receive",
+      "name": "2026-10-04-15-25-23"
+    }
+  ],
+  "plot": {
+    "type": "軌跡 (2D)",
+    "channels": [
+      "y",
+      "z"
+    ],
+    "params": {
+      "targets": {
+        "y": 0.283,
+        "z": 1.025
+      },
+      "use_file_target": false,
+      "diameter": 0.007,
+      "start": 160,
+      "end": 260,
+      "center": "目標",
+      "relative": true,
+      "half_range": 0.02,
+      "tick": 0.01,
+      "invert_x": true,
+      "markers": true,
+      "colorbar": false,
+      "legend": false,
+      "title": "filament, d = 7 mm, θ = 0 deg, #3"
+    }
+  },
+  "output": {
+    "path": "../figures/trajectory/filament_d7_0deg_3_trajectory_2026-10-04-15-25-23.png",
+    "dpi": 300
+  },
+  "statistics": {
+    "path": "../stats/filament_d7_0deg_3_xyz_2026-10-04-15-25-23.csv",
+    "channels": [
+      "x",
+      "y",
+      "z"
+    ]
+  }
+}

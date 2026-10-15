@@ -1,0 +1,62 @@
+{
+  "experiment": {
+    "target_diameter": 5,
+    "wall_angle": -20,
+    "task_start": 125,
+    "task_end": 145,
+    "target_position": {
+      "x": 0.449,
+      "y": 0.288,
+      "z": 1.03
+    },
+    "special_notes": []
+  },
+  "inputs": [
+    {
+      "path": "~/rosbag/for_analysis/2026-10-09-18-13-20.bag",
+      "type": "bag",
+      "topic": "/gimbalrotor/endeffector_pose",
+      "mode": "pose",
+      "time_source": "receive",
+      "name": "2026-10-09-18-13-20"
+    }
+  ],
+  "plot": {
+    "type": "軌跡 (2D)",
+    "channels": [
+      "y",
+      "z"
+    ],
+    "params": {
+      "targets": {
+        "y": 0.288,
+        "z": 1.03
+      },
+      "use_file_target": false,
+      "diameter": 0.005,
+      "start": 125,
+      "end": 145,
+      "center": "目標",
+      "relative": true,
+      "half_range": 0.02,
+      "tick": 0.01,
+      "invert_x": true,
+      "markers": true,
+      "colorbar": false,
+      "legend": false,
+      "title": "d = 5 mm, θ = -20 deg, #3"
+    }
+  },
+  "output": {
+    "path": "../figures/trajectory/d5_-20deg_3_trajectory_2026-10-09-18-13-20.png",
+    "dpi": 300
+  },
+  "statistics": {
+    "path": "../stats/d5_-20deg_3_xyz_2026-10-09-18-13-20.csv",
+    "channels": [
+      "x",
+      "y",
+      "z"
+    ]
+  }
+}
