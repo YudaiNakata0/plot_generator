@@ -26,6 +26,22 @@ rosbag（`.bag`）や npz（`.npz`）のデータからグラフを作る GUI �
 python3 app/plot_cli.py path/to/plot.json
 ```
 
+実験情報の同期
+
+実験の正本は `experiments_description.yaml` です。明示的に同期スクリプトを実行すると、対応する `parameters/<実験ID>.json` の実験情報と、実験情報から決まるプロット設定を更新できます。
+
+```bash
+python3 scripts/sync_experiments.py
+python3 scripts/sync_experiments.py --check
+python3 scripts/sync_experiments.py --id 2026-09-25-11-38-22
+```
+
+同期対象は JSON の `experiment` 全体、`plot.params` の `start` / `end` / `targets` / `diameter`、`statistics.params.targets`、壁角度に応じた `inputs[0].transform` と `plot.channels` です。直径は YAML の mm から JSON の m に変換され、壁角度は既存設定との互換性のため `wall_angle * 0.02` rad として扱います。
+
+bag のパス、topic、mode、図の範囲や色などの表示設定、出力先、タイトルは手動設定として保持されます。YAML にだけある実験は既存 JSON をテンプレートに生成し、JSON にだけある実験は削除せず警告します。
+
+同期状態は `.experiment_sync.json` に保存されます。YAML と JSON の両方が前回同期後に変更された場合は上書きせず停止するため、差分を確認してから YAML を優先する場合だけ `--force` を指定してください。`--check` はファイルを変更しません。
+
 `parameters/` 以下の設定をまとめて処理する場合は、リポジトリのトップで次を実行します。
 
 ```bash

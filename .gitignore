@@ -3,9 +3,11 @@ __pycache__/
 *build/
 *dist/
 *trial_output/
+tests/
 
 *.bag
 *.vscode
 *.pyc
 *.spec
 .generate_plots_and_stats.json
+.experiment_sync.json

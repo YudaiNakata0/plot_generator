@@ -65,6 +65,7 @@
 ## CLI / 一括生成
 
 - [x] `generate_plots_and_stats.sh`: JSON設定の内容を記録し、変更された設定だけプロット・統計を再生成する
+- [x] `scripts/sync_experiments.py`: `experiments_description.yaml` を正本として実験情報とプロット設定を JSON に同期する
 
 ## 既知の制限・注意
 
