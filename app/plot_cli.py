@@ -23,6 +23,7 @@ from matplotlib.figure import Figure
 
 from core.loaders import npz
 from core.processing import stats as stats_processing
+from core.processing import transform as transform_processing
 from plots import REGISTRY
 
 
@@ -53,31 +54,86 @@ def _load_dataset(spec, base):
     name = spec.get("name")
 
     if kind == "npz":
-        return npz.load(path, name=name)
-    if kind != "bag":
+        dataset = npz.load(path, name=name)
+    elif kind != "bag":
         raise ValueError(f"未対応の入力形式です: {kind} ({path})")
+    else:
+        # ROS依存のモジュールはbag入力を使うときだけ読み込む。
+        from core.loaders import bag
 
-    # ROS依存のモジュールはbag入力を使うときだけ読み込む。
-    from core.loaders import bag
+        topic = spec.get("topic")
+        if not topic:
+            raise ValueError(f"bag入力には topic が必要です: {path}")
+        kwargs = {
+            "time_source": spec.get("time_source", "receive"),
+            "name": name,
+        }
+        mode = spec.get("mode", "fields")
+        if mode == "pose":
+            dataset = bag.load_pose(path, topic, **kwargs)
+        elif mode == "wrench":
+            dataset = bag.load_wrench(path, topic, **kwargs)
+        else:
+            if mode != "fields":
+                raise ValueError(f"bag の mode は pose / wrench / fields です: {mode}")
+            fields = spec.get("fields")
+            if not fields:
+                raise ValueError(f"fields mode のbag入力には fields が必要です: {path}")
+            dataset = bag.load(path, topic, fields, **kwargs)
 
-    topic = spec.get("topic")
-    if not topic:
-        raise ValueError(f"bag入力には topic が必要です: {path}")
-    kwargs = {
-        "time_source": spec.get("time_source", "receive"),
-        "name": name,
-    }
-    mode = spec.get("mode", "fields")
-    if mode == "pose":
-        return bag.load_pose(path, topic, **kwargs)
-    if mode == "wrench":
-        return bag.load_wrench(path, topic, **kwargs)
-    if mode != "fields":
-        raise ValueError(f"bag の mode は pose / wrench / fields です: {mode}")
-    fields = spec.get("fields")
-    if not fields:
-        raise ValueError(f"fields mode のbag入力には fields が必要です: {path}")
-    return bag.load(path, topic, fields, **kwargs)
+    transform_spec = spec.get("transform")
+    if transform_spec is None:
+        return dataset
+    if not isinstance(transform_spec, dict):
+        raise ValueError(f"transform はオブジェクトにしてください: {path}")
+
+    channels = transform_spec.get("channels")
+    if not isinstance(channels, list) or len(channels) != 3 or not all(
+        isinstance(channel, str) and channel for channel in channels
+    ):
+        raise ValueError(f"transform.channels は3つのチャンネル名が必要です: {path}")
+    missing = [channel for channel in channels if channel not in dataset]
+    if missing:
+        raise ValueError(f"{path}: transform用チャンネルがありません: {missing}")
+
+    origin_spec = transform_spec.get("origin")
+    if origin_spec is None or origin_spec == "none":
+        origin = None
+    elif origin_spec == "target":
+        origin = transform_processing.target_origin(dataset, channels)
+        if origin is None:
+            raise ValueError(
+                f"{path}: transform.origin=target には {channels} の目標値が3つ必要です"
+            )
+    elif isinstance(origin_spec, list) and len(origin_spec) == 3:
+        try:
+            origin = [float(value) for value in origin_spec]
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"transform.origin は数値3要素が必要です: {path}") from exc
+    elif isinstance(origin_spec, list):
+        raise ValueError(f"transform.origin は3要素の座標が必要です: {path}")
+    else:
+        raise ValueError(f"transform.origin は target / none / 3要素配列です: {path}")
+
+    axis = transform_spec.get("axis")
+    if axis not in (None, "x", "y", "z"):
+        raise ValueError(f"transform.axis は null / x / y / z のいずれかです: {path}")
+    suffix = transform_spec.get("suffix", "'")
+    if not isinstance(suffix, str) or not suffix:
+        raise ValueError(f"transform.suffix は空でない文字列が必要です: {path}")
+    try:
+        angle = float(transform_spec.get("angle", 0.0))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"transform.angle は数値が必要です: {path}") from exc
+
+    return transform_processing.transform_position(
+        dataset,
+        channels,
+        origin=origin,
+        axis=axis,
+        angle=angle,
+        suffix=suffix,
+    )
 
 
 def _read_config(config_path):
@@ -145,6 +201,14 @@ def render(config, config_path):
             statistics = {"path": statistics}
         if not isinstance(statistics, dict) or not statistics.get("path"):
             raise ValueError("statistics.path が必要です")
+        statistics_params = statistics.get("params", {})
+        if not isinstance(statistics_params, dict):
+            raise ValueError("statistics.params はオブジェクトにしてください")
+        # 統計は既定でプロットと同じ条件を使い、statistics.params があれば
+        # 統計専用の条件として上書きする。
+        statistics_resolved = plot_type.resolve_params(
+            {**params, **statistics_params}
+        )
         statistics_channels = statistics.get("channels", channels)
         if not isinstance(statistics_channels, list) or not statistics_channels:
             raise ValueError("statistics.channels は統計するチャンネルの配列にしてください")
@@ -153,11 +217,11 @@ def render(config, config_path):
         results = stats_processing.dataset_stats(
             datasets,
             statistics_channels,
-            targets=resolved.get("targets"),
-            bands=resolved.get("bands"),
-            use_file_target=resolved.get("use_file_target", True),
-            start=resolved.get("start"),
-            end=resolved.get("end"),
+            targets=statistics_resolved.get("targets"),
+            bands=statistics_resolved.get("bands"),
+            use_file_target=statistics_resolved.get("use_file_target", True),
+            start=statistics_resolved.get("start"),
+            end=statistics_resolved.get("end"),
         )
         stats_processing.save_csv(results, statistics_path)
 

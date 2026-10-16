@@ -18,19 +18,34 @@
       "topic": "/gimbalrotor/endeffector_pose",
       "mode": "pose",
       "time_source": "receive",
-      "name": "2026-10-11-15-03-49"
+      "name": "2026-10-11-15-03-49",
+      "transform": {
+        "channels": [
+          "x",
+          "y",
+          "z"
+        ],
+        "origin": [
+          0.402,
+          0.296,
+          1.0
+        ],
+        "axis": "y",
+        "angle": 0.4,
+        "suffix": "'"
+      }
     }
   ],
   "plot": {
     "type": "軌跡 (2D)",
     "channels": [
-      "y",
-      "z"
+      "y'",
+      "z'"
     ],
     "params": {
       "targets": {
-        "y": 0.296,
-        "z": 1.0
+        "y'": 0,
+        "z'": 0
       },
       "use_file_target": false,
       "diameter": 0.007,
@@ -57,6 +72,13 @@
       "x",
       "y",
       "z"
-    ]
+    ],
+    "params": {
+      "targets": {
+        "x": 0.402,
+        "y": 0.296,
+        "z": 1.0
+      }
+    }
   }
 }

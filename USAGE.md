@@ -26,6 +26,26 @@ rosbag（`.bag`）や npz（`.npz`）のデータからグラフを作る GUI �
 python3 app/plot_cli.py path/to/plot.json
 ```
 
+`parameters/` 以下の設定をまとめて処理する場合は、リポジトリのトップで次を実行します。
+
+```bash
+./generate_plots_and_stats.sh
+```
+
+スクリプトは、前回成功したときの各JSONの内容（SHA-256）を
+`.generate_plots_and_stats.json` に記録します。次回以降は、内容が変わったJSONだけを
+再実行します。初回実行時と、新しく追加したJSONは必ず処理されます。
+
+全件を再生成したい場合は、状態ファイルを削除してから実行してください。
+
+```bash
+rm .generate_plots_and_stats.json
+./generate_plots_and_stats.sh
+```
+
+状態ファイルはJSONの変更だけを判定します。入力bag/NPZやアプリの実装、既存の画像・CSVが
+変更・削除された場合には自動再生成しないため、必要に応じて状態ファイルを削除します。
+
 設定例（NPZの時系列）:
 
 ```json
@@ -50,6 +70,8 @@ python3 app/plot_cli.py path/to/plot.json
 ```
 
 `statistics` を指定すると、画像と同じデータセット・`start` / `end`・`targets`・`bands` の条件で統計値をCSV保存します。通常は画像の `plot.channels` が統計対象になりますが、`statistics.channels` を指定すると統計だけ別のチャンネルにできます。例えば、2D軌跡を `y,z` で描きながら、統計CSVには `x,y,z` を出力できます。
+
+統計だけ別の目標値・許容範囲・時間範囲にしたい場合は、`statistics.params` に指定できます。`statistics.params` にない項目は `plot.params` の値を引き継ぎます。
 
 ```json
 {
@@ -81,6 +103,44 @@ python3 app/plot_cli.py path/to/plot.json
   {"path": "data/0deg.npz", "name": "0 deg"},
   {"path": "data/10deg.npz", "name": "10 deg"}
 ]
+```
+
+各入力には `transform` を指定して、傾斜した壁面に沿う座標へ変換できます。
+`channels` は変換する元の3軸、`origin` は `target`（入力ファイルの目標値）、
+`none`（省略時も同じ）、または `[x, y, z]` の原点、`axis` は回転軸、
+`angle` はラジアン、`suffix` は変換後チャンネルの接尾辞です。
+`origin: "target"` と `axis: "y"`、`angle: -pitch` を指定すると、
+目標位置を原点にしてY軸まわりに `-pitch` 回転した座標になります。
+例えば `y'` と `z'` は、変換後の壁面内の2軸として軌跡に指定できます。
+変換後チャンネルは自動選択されないため、`plot.channels` に明示してください。
+統計も `statistics.channels` に同じ変換後チャンネルを指定できます。
+
+```json
+{
+  "inputs": [
+    {
+      "path": "data/pose.npz",
+      "name": "-10 deg",
+      "transform": {
+        "channels": ["x", "y", "z"],
+        "origin": "target",
+        "axis": "y",
+        "angle": -0.1745329252,
+        "suffix": "'"
+      }
+    }
+  ],
+  "plot": {
+    "type": "軌跡 (2D)",
+    "channels": ["y'", "z'"],
+    "params": {"targets": {"y'": 0, "z'": 0}}
+  },
+  "output": {"path": "figures/tilted_trajectory.png"},
+  "statistics": {
+    "path": "stats/tilted_trajectory.csv",
+    "channels": ["y'", "z'"]
+  }
+}
 ```
 
 bagはPose/Wrenchの既知型、または任意フィールドに対応します。
