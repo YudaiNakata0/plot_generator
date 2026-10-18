@@ -7,7 +7,7 @@
     "target_position": {
       "x": 0.423,
       "y": 0.285,
-      "z": 1.035
+      "z": 1.032
     },
     "special_notes": [
       "use filament"
@@ -32,7 +32,7 @@
     "params": {
       "targets": {
         "y": 0.285,
-        "z": 1.035
+        "z": 1.032
       },
       "use_file_target": false,
       "diameter": 0.005,
@@ -64,7 +64,7 @@
       "targets": {
         "x": 0.423,
         "y": 0.285,
-        "z": 1.035
+        "z": 1.032
       }
     }
   }

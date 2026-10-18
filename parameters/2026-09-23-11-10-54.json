@@ -7,7 +7,7 @@
     "target_position": {
       "x": 0.407,
       "y": 0.281,
-      "z": 0.943
+      "z": 0.941
     },
     "special_notes": []
   },
@@ -30,7 +30,7 @@
     "params": {
       "targets": {
         "y": 0.281,
-        "z": 0.943
+        "z": 0.941
       },
       "use_file_target": false,
       "diameter": 0.007,
@@ -62,7 +62,7 @@
       "targets": {
         "x": 0.407,
         "y": 0.281,
-        "z": 0.943
+        "z": 0.941
       }
     }
   }

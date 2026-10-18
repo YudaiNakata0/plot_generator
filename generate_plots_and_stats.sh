@@ -4,8 +4,40 @@ set -euo pipefail
 # このスクリプトはリポジトリの場所を基準に設定・出力を扱う。
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 
-# JSONの内容が前回の成功時から変わったものだけplot_cliに渡す。
-exec python3 - <<'PY'
+force_rebuild=0
+case "${1:-}" in
+    "")
+        ;;
+    --force|-f)
+        force_rebuild=1
+        shift
+        ;;
+    --help|-h)
+        cat <<'EOF'
+使い方: ./generate_plots_and_stats.sh [--force|-f]
+
+変更された設定だけを処理します。--force（-f）を指定すると、
+前回の処理結果に関係なく parameters/ 以下の全設定を処理します。
+EOF
+        exit 0
+        ;;
+    *)
+        echo "使い方: ./generate_plots_and_stats.sh [--force|-f]" >&2
+        exit 2
+        ;;
+esac
+
+if [[ $# -gt 0 ]]; then
+    echo "使い方: ./generate_plots_and_stats.sh [--force|-f]" >&2
+    exit 2
+fi
+
+# JSONの更新
+python scripts/sync_experiments.py
+
+# 通常はJSONの内容が前回の成功時から変わったものだけ、--force指定時は全JSONを
+# plot_cliに渡す。
+exec python3 - "$force_rebuild" <<'PY'
 from __future__ import annotations
 
 import hashlib
@@ -75,6 +107,7 @@ def digest(path):
 
 
 def main():
+    force_rebuild = sys.argv[1] == "1"
     configs = sorted(Path("parameters").glob("*.json"))
     if not configs:
         print("No parameter JSON files found in parameters/", flush=True)
@@ -90,13 +123,14 @@ def main():
         config_name = config_path.as_posix()
         current_digest = digest(config_path)
 
-        if previous_state.get(config_name) == current_digest:
+        if not force_rebuild and previous_state.get(config_name) == current_digest:
             print(f"Skipping unchanged: {config_name}", flush=True)
             next_state[config_name] = current_digest
             skipped += 1
             continue
 
-        print(f"Processing: {config_name}", flush=True)
+        message = "Processing (forced)" if force_rebuild else "Processing"
+        print(f"{message}: {config_name}", flush=True)
         result = subprocess.run(
             [sys.executable, "app/plot_cli.py", str(config_path)],
             check=False,

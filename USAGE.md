@@ -52,11 +52,11 @@ bag のパス、topic、mode、図の範囲や色などの表示設定、出力�
 `.generate_plots_and_stats.json` に記録します。次回以降は、内容が変わったJSONだけを
 再実行します。初回実行時と、新しく追加したJSONは必ず処理されます。
 
-全件を再生成したい場合は、状態ファイルを削除してから実行してください。
+前回からの差分に関係なく全件を再生成したい場合は、`--force`（または `-f`）を
+指定します。状態ファイルは削除されず、成功した設定の処理結果が更新されます。
 
 ```bash
-rm .generate_plots_and_stats.json
-./generate_plots_and_stats.sh
+./generate_plots_and_stats.sh --force
 ```
 
 状態ファイルはJSONの変更だけを判定します。入力bag/NPZやアプリの実装、既存の画像・CSVが

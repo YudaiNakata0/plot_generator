@@ -6,8 +6,8 @@
     "task_end": 250,
     "target_position": {
       "x": 0.426,
-      "y": 0.28,
-      "z": 1.035
+      "y": 0.281,
+      "z": 1.03
     },
     "special_notes": [
       "use filament"
@@ -31,8 +31,8 @@
     ],
     "params": {
       "targets": {
-        "y": 0.28,
-        "z": 1.035
+        "y": 0.281,
+        "z": 1.03
       },
       "use_file_target": false,
       "diameter": 0.007,
@@ -63,8 +63,8 @@
     "params": {
       "targets": {
         "x": 0.426,
-        "y": 0.28,
-        "z": 1.035
+        "y": 0.281,
+        "z": 1.03
       }
     }
   }

@@ -2,11 +2,11 @@
   "experiment": {
     "target_diameter": 7,
     "wall_angle": 20,
-    "task_start": 130,
-    "task_end": 170,
+    "task_start": 131,
+    "task_end": 171,
     "target_position": {
       "x": 0.402,
-      "y": 0.296,
+      "y": 0.293,
       "z": 1.0
     },
     "special_notes": []
@@ -27,7 +27,7 @@
         ],
         "origin": [
           0.402,
-          0.296,
+          0.293,
           1.0
         ],
         "axis": "y",
@@ -49,8 +49,8 @@
       },
       "use_file_target": false,
       "diameter": 0.007,
-      "start": 130,
-      "end": 170,
+      "start": 131,
+      "end": 171,
       "center": "目標",
       "relative": true,
       "half_range": 0.02,
@@ -76,7 +76,7 @@
     "params": {
       "targets": {
         "x": 0.402,
-        "y": 0.296,
+        "y": 0.293,
         "z": 1.0
       }
     }

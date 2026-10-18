@@ -25,11 +25,11 @@ experiments:
   2026-10-02-10-22-26:
     target_diameter: 5
     wall_angle: 0
-    task_start: 140
-    task_end: 160
+    task_start: 147
+    task_end: 167
     target_position:
       x: 0.411
-      y: 0.281
+      y: 0.283
       z: 1.033
     special_notes: []
 
@@ -41,7 +41,7 @@ experiments:
     task_end: 180
     target_position:
       x: 0.397
-      y: 0.280
+      y: 0.276
       z: 1.023
     special_notes: []
 
@@ -53,7 +53,7 @@ experiments:
     target_position:
       x: 0.400
       y: 0.280
-      z: 1.025
+      z: 1.021
     special_notes: []
 
   2026-09-26-11-59-50:
@@ -93,24 +93,24 @@ experiments:
   2026-09-30-10-45-31:
     target_diameter: 5
     wall_angle: -10
-    task_start: 150
-    task_end: 170
+    task_start: 160
+    task_end: 180
     target_position:
       x: 0.424
       y: 0.280
-      z: 1.029
+      z: 1.028
     special_notes: []
 
   # d = 5, theta = 20
   2026-10-06-11-07-14:
     target_diameter: 5
     wall_angle: 20
-    task_start: 150
-    task_end: 170
+    task_start: 158
+    task_end: 178
     target_position:
       x: 0.386
-      y: 0.290
-      z: 0.990
+      y: 0.292
+      z: 0.992
     special_notes: []
 
   2026-10-07-09-41-36:
@@ -139,12 +139,12 @@ experiments:
   2026-10-09-17-28-04:
     target_diameter: 5
     wall_angle: -20
-    task_start: 155
-    task_end: 175
+    task_start: 161
+    task_end: 181
     target_position:
       x: 0.449
-      y: 0.290
-      z: 1.032
+      y: 0.288
+      z: 1.027
     special_notes: []
 
   2026-10-09-17-48-50:
@@ -189,7 +189,7 @@ experiments:
     target_position:
       x: 0.407
       y: 0.281
-      z: 0.943
+      z: 0.941
     special_notes: []
 
   2026-10-02-10-36-06:
@@ -200,7 +200,7 @@ experiments:
     target_position:
       x: 0.411
       y: 0.285
-      z: 1.040
+      z: 1.038
     special_notes: []
 
   # d = 7, theta = 10
@@ -218,12 +218,12 @@ experiments:
   2026-09-29-11-26-21:
     target_diameter: 7
     wall_angle: 10
-    task_start: 160
-    task_end: 200
+    task_start: 169
+    task_end: 209
     target_position:
       x: 0.400
-      y: 0.280
-      z: 1.022
+      y: 0.278
+      z: 1.020
     special_notes: []
 
   2026-10-01-09-45-12:
@@ -234,7 +234,7 @@ experiments:
     target_position:
       x: 0.394
       y: 0.287
-      z: 1.015
+      z: 1.014
     special_notes: []
 
   # d = 7, theta = -10
@@ -257,7 +257,7 @@ experiments:
     target_position:
       x: 0.423
       y: 0.280
-      z: 1.031
+      z: 1.030
     special_notes: []
 
   2026-10-01-08-54-59:
@@ -267,19 +267,19 @@ experiments:
     task_end: 150
     target_position:
       x: 0.422
-      y: 0.288
-      z: 1.028
+      y: 0.287
+      z: 1.026
     special_notes: []
 
   # d = 7, theta = 20
   2026-10-11-15-03-49:
     target_diameter: 7
     wall_angle: 20
-    task_start: 130
-    task_end: 170
+    task_start: 131
+    task_end: 171
     target_position:
       x: 0.402
-      y: 0.296
+      y: 0.293
       z: 1.000
     special_notes: []
 
@@ -314,7 +314,7 @@ experiments:
     target_position:
       x: 0.456
       y: 0.290
-      z: 1.033
+      z: 1.032
     special_notes: []
 
   2026-10-11-14-20-15:
@@ -331,11 +331,11 @@ experiments:
   2026-10-11-14-36-44:
     target_diameter: 7
     wall_angle: -20
-    task_start: 195
-    task_end: 235
+    task_start: 197
+    task_end: 237
     target_position:
       x: 0.456
-      y: 0.290
+      y: 0.292
       z: 1.030
     special_notes: []
 
@@ -359,7 +359,7 @@ experiments:
     target_position:
       x: 0.414
       y: 0.286
-      z: 1.035
+      z: 1.033
     special_notes: []
 
   2026-10-03-10-15-30:
@@ -369,8 +369,8 @@ experiments:
     task_end: 180
     target_position:
       x: 0.414
-      y: 0.290
-      z: 1.036
+      y: 0.288
+      z: 1.034
     special_notes: []
 
   # d = 14, theta = 0
@@ -407,19 +407,19 @@ experiments:
     target_position:
       x: 0.423
       y: 0.285
-      z: 1.035
+      z: 1.032
     special_notes:
       - "use filament"
 
   2026-10-04-12-34-02:
     target_diameter: 5
     wall_angle: 0
-    task_start: 100
-    task_end: 160
+    task_start: 102
+    task_end: 162
     target_position:
       x: 0.423
-      y: 0.280
-      z: 1.035
+      y: 0.283
+      z: 1.032
     special_notes:
       - "use filament"
 
@@ -431,19 +431,19 @@ experiments:
     task_end: 250
     target_position:
       x: 0.426
-      y: 0.280
-      z: 1.035
+      y: 0.281
+      z: 1.030
     special_notes:
       - "use filament"
 
   2026-10-04-14-56-18:
     target_diameter: 7
     wall_angle: 0
-    task_start: 90
-    task_end: 190
+    task_start: 100
+    task_end: 200
     target_position:
       x: 0.427
-      y: 0.282
+      y: 0.283
       z: 1.030
     special_notes:
       - "use filament"
@@ -455,7 +455,7 @@ experiments:
     task_end: 260
     target_position:
       x: 0.428
-      y: 0.283
-      z: 1.025
+      y: 0.284
+      z: 1.027
     special_notes:
       - "use filament"
