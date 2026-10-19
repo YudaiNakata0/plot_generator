@@ -31,6 +31,28 @@ def _label(path, data):
     return os.path.splitext(os.path.basename(path))[0]
 
 
+def _position_error_in_mm(path, data):
+    """Return ``error_r`` in mm, regardless of the NPZ's stored unit.
+
+    Older error files store the position error in metres, while newer files
+    may store it in millimetres.  Use the unit recorded in ``__meta__`` so the
+    plotted values always agree with the axis label.
+    """
+    r = np.asarray(data["error_r"], dtype=float).ravel()
+    unit = "m"
+    if "__meta__" in data:
+        try:
+            info = json.loads(str(data["__meta__"]))
+            unit = info.get("units", {}).get("error_r", "m")
+        except (TypeError, ValueError, json.JSONDecodeError):
+            pass
+    if unit == "m":
+        return r * 1000.0
+    if unit == "mm":
+        return r
+    raise ValueError(f"{path}: unsupported error_r unit {unit!r}; expected 'm' or 'mm'")
+
+
 def _pyplot(show):
     """表示の有無に合わせてMatplotlibのバックエンドを選ぶ。"""
     # pyplot を import する前にバックエンドを選ぶ必要がある。
@@ -51,7 +73,7 @@ def create_boxplot(npz_files, output=None, show=True):
             for key in ("error_r", "error_theta"):
                 if key not in data:
                     raise KeyError(f"{path} does not contain key '{key}'")
-            r = np.asarray(data["error_r"], dtype=float).ravel()
+            r = _position_error_in_mm(path, data)
             theta = np.asarray(data["error_theta"], dtype=float).ravel()
             if len(r) == 0 or len(theta) == 0:
                 raise ValueError(f"{path} contains an empty error array")

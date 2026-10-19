@@ -167,6 +167,18 @@ python3 app/boxplot_cli.py stats/errors/*_errors.npz \
 実験名はNPZのメタ情報を優先し、各実験について `error_r` と `error_theta` を横に
 並べて表示します。ひげは最小値から最大値までです。
 
+複数の誤差時系列NPZをサンプル方向に連結して1つにまとめるには、次を実行します。
+
+```bash
+python3 app/merge_npz.py stats/errors/*_errors_*.npz \
+  --output stats/errors/all_errors.npz
+```
+
+入力順に各配列を連結し、`time` は既定で各ファイルの開始を0にそろえたうえで、
+連結後も単調増加するように調整します。元の時刻をそのまま連結したい場合は
+`--time-mode preserve` を指定してください。入力ファイルは同じキー構成で、各配列が
+同じサンプル数である必要があります。出力NPZのメタ情報には入力ファイル一覧が記録されます。
+
 `inputs` は複数指定できます。NPZは文字列だけでも指定できます。
 複数のNPZを比較する場合は、次のように名前を付けられます。
 

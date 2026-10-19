@@ -68,6 +68,7 @@
 - [x] `scripts/sync_experiments.py`: `experiments_description.yaml` を正本として実験情報とプロット設定を JSON に同期する
 - [x] parameters JSONから `error_r` / `error_theta` の時系列NPZを生成（`app/error_cli.py`）
 - [x] 複数実験の誤差箱ひげ図（`app/boxplot_cli.py`）
+- [x] 複数の誤差時系列 NPZ の結合（`app/merge_npz.py`）
 
 ## 既知の制限・注意
 
