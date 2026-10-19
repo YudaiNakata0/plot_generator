@@ -111,6 +111,62 @@ bag のパス、topic、mode、図の範囲や色などの表示設定、出力�
 
 `statistics` はパス文字列でも指定できます。`use_file_target` もGUIと同じく利用され、既定ではNPZやbagに含まれる目標値を使います。`statistics.channels` に指定したチャンネルがデータセットに無い場合、そのチャンネルはCSVからスキップされます。統計CSVが不要な場合は、`statistics` 項目を省略してください。
 
+## 誤差時系列の出力
+
+実験設定JSONから、位置誤差と姿勢誤差をサンプルごとに保存できます。対象は当面
+`inputs[0]` の Pose bag です。
+
+```bash
+python3 app/error_cli.py parameters/2026-09-18-11-17-34.json
+```
+
+出力先は既定では `../stats/errors/<JSONのファイル名>_errors.npz` です。JSONで
+`error_statistics.path`（互換の別名は `errors.path`）を指定すると変更できます。
+相対パスは設定JSONのディレクトリから解決されます。
+
+```json
+{
+  "error_statistics": {
+    "path": "../stats/errors/2026-09-18-11-17-34_errors.npz"
+  }
+}
+```
+
+NPZには次のキーが入ります。
+
+| キー | 内容 | 単位 |
+|---|---|---|
+| `time` | `task_start` から `task_end` の時刻。先頭は0秒 | s |
+| `error_r` | `target_position` からのユークリッド距離 | mm |
+| `error_theta` | 現在姿勢と目標姿勢の回転角 | rad |
+
+姿勢目標は `[roll, pitch, yaw] = [0, -inputs[0].transform.angle, 0]` です。
+`transform` または `angle` が無い場合は角度0として扱います。姿勢誤差はPoseの
+`qx,qy,qz,qw`から計算し、クォータニオンの符号反転は同じ姿勢として扱います。
+既存の座標変換が指定されている場合は、位置と目標位置の両方に同じ変換を適用します。
+
+`generate_plots_and_stats.sh` は画像・CSVに加えてこのNPZも生成し、どちらかが失敗した
+設定JSONは成功扱いにしません。
+
+複数実験を1つの箱ひげ図にまとめるには、次を実行します。
+
+```bash
+python3 app/boxplot_cli.py stats/errors/*_errors.npz \
+  --output figures/error_boxplot.png
+```
+
+通常実行では箱ひげ図をQtのウィンドウに表示し、`--output`を指定した場合は同時に画像を保存します。画面を表示せず画像だけ生成する場合は、`--noshow`を指定してください。
+
+このCLIはmatplotlib 3.5.1とPyQt5の組み合わせで動作するよう、Qtの選択を自動設定します。
+
+```bash
+python3 app/boxplot_cli.py stats/errors/*_errors.npz \
+  --output figures/error_boxplot.png --noshow
+```
+
+実験名はNPZのメタ情報を優先し、各実験について `error_r` と `error_theta` を横に
+並べて表示します。ひげは最小値から最大値までです。
+
 `inputs` は複数指定できます。NPZは文字列だけでも指定できます。
 複数のNPZを比較する場合は、次のように名前を付けられます。
 

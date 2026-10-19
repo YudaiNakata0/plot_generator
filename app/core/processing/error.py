@@ -107,6 +107,44 @@ def orientation_angle(rpy, target_rpy):
     return theta
 
 
+def orientation_angle_from_quaternion_array(quaternions, target_quaternion):
+    """クォータニオン配列と目標クォータニオンから姿勢誤差角を返す。
+
+    ``quaternions`` は ``(N, 4)`` の ``[qx, qy, qz, qw]`` 配列、
+    ``target_quaternion`` は長さ4の同じ並びで指定する。SciPy の
+    ``Rotation`` が正規化するため、入力のクォータニオンの符号が反転
+    していても同じ姿勢として扱われる。NaN を含む行は NaN のまま返す。
+    """
+    quaternions = np.asarray(quaternions, dtype=float)
+    target_quaternion = np.asarray(target_quaternion, dtype=float)
+    if quaternions.ndim != 2 or quaternions.shape[1] != 4:
+        raise ValueError(
+            f"quaternions must have shape (N, 4), got {quaternions.shape}"
+        )
+    if target_quaternion.shape != (4,):
+        raise ValueError(
+            f"target_quaternion must have shape (4,), got {target_quaternion.shape}"
+        )
+    if not np.isfinite(target_quaternion).all() or np.linalg.norm(target_quaternion) == 0:
+        raise ValueError("target_quaternion must be a finite, non-zero quaternion")
+
+    theta = np.full(len(quaternions), np.nan)
+    valid = np.isfinite(quaternions).all(axis=1)
+    if valid.any():
+        current = Rotation.from_quat(quaternions[valid])
+        target = Rotation.from_quat(target_quaternion)
+        theta[valid] = (current.inv() * target).magnitude()
+    return theta
+
+
+def orientation_angle_from_quaternion(quaternions, target_rpy):
+    """``[qx, qy, qz, qw]`` 配列と目標 RPY から姿勢誤差角を返す。"""
+    target = Rotation.from_euler(EULER_ORDER, np.asarray(target_rpy, dtype=float))
+    return orientation_angle_from_quaternion_array(
+        quaternions, target.as_quat()
+    )
+
+
 def orientation_error(dataset, channels=("roll", "pitch", "yaw"), targets=None, name="theta"):
     """姿勢誤差 θ [rad] を、チャンネル name として追加した Dataset を返す。"""
     channels = _check_channels(dataset, channels, count=3)

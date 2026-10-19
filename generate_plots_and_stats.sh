@@ -36,7 +36,7 @@ fi
 python scripts/sync_experiments.py
 
 # 通常はJSONの内容が前回の成功時から変わったものだけ、--force指定時は全JSONを
-# plot_cliに渡す。
+# plot_cli と error_cli に渡す。
 exec python3 - "$force_rebuild" <<'PY'
 from __future__ import annotations
 
@@ -106,6 +106,26 @@ def digest(path):
     return hasher.hexdigest()
 
 
+def error_output_exists(config_path):
+    """誤差NPZが残っているときだけ、成功済み設定をスキップする。"""
+    try:
+        with config_path.open(encoding="utf-8") as stream:
+            config = json.load(stream)
+        setting = config.get("error_statistics", config.get("errors"))
+        if isinstance(setting, str):
+            value = setting
+        elif isinstance(setting, dict) and setting.get("path"):
+            value = setting["path"]
+        else:
+            value = f"../stats/errors/{config_path.stem}_errors.npz"
+        path = Path(value).expanduser()
+        if not path.is_absolute():
+            path = config_path.parent / path
+        return path.exists()
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        return False
+
+
 def main():
     force_rebuild = sys.argv[1] == "1"
     configs = sorted(Path("parameters").glob("*.json"))
@@ -123,7 +143,11 @@ def main():
         config_name = config_path.as_posix()
         current_digest = digest(config_path)
 
-        if not force_rebuild and previous_state.get(config_name) == current_digest:
+        if (
+            not force_rebuild
+            and previous_state.get(config_name) == current_digest
+            and error_output_exists(config_path)
+        ):
             print(f"Skipping unchanged: {config_name}", flush=True)
             next_state[config_name] = current_digest
             skipped += 1
@@ -135,6 +159,11 @@ def main():
             [sys.executable, "app/plot_cli.py", str(config_path)],
             check=False,
         )
+        if result.returncode == 0:
+            result = subprocess.run(
+                [sys.executable, "app/error_cli.py", str(config_path)],
+                check=False,
+            )
         if result.returncode == 0:
             next_state[config_name] = current_digest
             processed += 1

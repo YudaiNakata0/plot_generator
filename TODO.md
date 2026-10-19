@@ -17,7 +17,7 @@
 - [ ] `core/processing/quaternion.py`: qx, qy, qz, qw から roll / pitch / yaw（scipy `Rotation`, `"xyz"`）。`geometry_msgs` に依存しない numpy 配列版
 - [x] `core/processing/error.py`: 姿勢誤差 θ（roll, pitch, yaw → クォータニオン → 目標との差の回転角）、位置誤差 r、各軸の誤差。`record_orientation.py`, `calculate_error_rad.py`, `calculate_error.py` 相当。元のスクリプトの式と一致を確認済み（θ は q と -q を同じ姿勢として扱うため `abs(w)`）
 - [x] GUI: データセットの右クリック「誤差の計算...」（`gui/error_dialog.py`。目標値はファイルの値か手入力）
-- [ ] 誤差の計算: クォータニオン (qx..qw) を直接入力にする（bag の Pose は roll/pitch/yaw を持たないため、今は npz のデータでしか姿勢誤差を出せない）
+- [x] 誤差の計算: クォータニオン (qx..qw) を直接入力にする（`core/processing/error.py`）
 - [ ] 誤差の計算: 各軸の誤差を `*_rpy.npz`（calculate_error.py -s）の形式で保存するか検討（今はデータセットのチャンネルとして npz 保存できる）
 - [x] 統計: `core/processing/stats.py` と中央下の「統計」タブ（平均, 標準偏差, 中央値, 最小/最大, 平均誤差, RMSE, 最大誤差, 範囲内の割合）。コピー・CSV 保存
 - [ ] 統計: 派生チャンネル（r, θ, 各軸の誤差）の統計を実データで確認する（目標値 0 なので RMSE = RMS 誤差。GUI の動作確認は済み）
@@ -66,6 +66,8 @@
 
 - [x] `generate_plots_and_stats.sh`: JSON設定の内容を記録し、変更された設定だけプロット・統計を再生成する
 - [x] `scripts/sync_experiments.py`: `experiments_description.yaml` を正本として実験情報とプロット設定を JSON に同期する
+- [x] parameters JSONから `error_r` / `error_theta` の時系列NPZを生成（`app/error_cli.py`）
+- [x] 複数実験の誤差箱ひげ図（`app/boxplot_cli.py`）
 
 ## 既知の制限・注意
 
