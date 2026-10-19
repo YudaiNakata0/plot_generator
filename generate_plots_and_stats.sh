@@ -36,7 +36,7 @@ fi
 python scripts/sync_experiments.py
 
 # 通常はJSONの内容が前回の成功時から変わったものだけ、--force指定時は全JSONを
-# plot_cli と error_cli に渡す。
+# plot_cli に渡す。誤差NPZは generate_errors.sh で別に生成する。
 exec python3 - "$force_rebuild" <<'PY'
 from __future__ import annotations
 
@@ -106,22 +106,33 @@ def digest(path):
     return hasher.hexdigest()
 
 
-def error_output_exists(config_path):
-    """誤差NPZが残っているときだけ、成功済み設定をスキップする。"""
+def plot_outputs_exist(config_path):
+    """画像と、指定されていれば統計CSVが残っているか確認する。"""
     try:
         with config_path.open(encoding="utf-8") as stream:
             config = json.load(stream)
-        setting = config.get("error_statistics", config.get("errors"))
-        if isinstance(setting, str):
-            value = setting
-        elif isinstance(setting, dict) and setting.get("path"):
-            value = setting["path"]
+        output = config.get("output")
+        if isinstance(output, str):
+            output_path = output
+        elif isinstance(output, dict) and output.get("path"):
+            output_path = output["path"]
         else:
-            value = f"../stats/errors/{config_path.stem}_errors.npz"
-        path = Path(value).expanduser()
-        if not path.is_absolute():
-            path = config_path.parent / path
-        return path.exists()
+            return False
+
+        paths = [output_path]
+        statistics = config.get("statistics", config.get("stats"))
+        if isinstance(statistics, str):
+            paths.append(statistics)
+        elif isinstance(statistics, dict) and statistics.get("path"):
+            paths.append(statistics["path"])
+
+        for value in paths:
+            path = Path(value).expanduser()
+            if not path.is_absolute():
+                path = config_path.parent / path
+            if not path.exists():
+                return False
+        return True
     except (OSError, TypeError, ValueError, json.JSONDecodeError):
         return False
 
@@ -146,7 +157,7 @@ def main():
         if (
             not force_rebuild
             and previous_state.get(config_name) == current_digest
-            and error_output_exists(config_path)
+            and plot_outputs_exist(config_path)
         ):
             print(f"Skipping unchanged: {config_name}", flush=True)
             next_state[config_name] = current_digest
@@ -159,11 +170,6 @@ def main():
             [sys.executable, "app/plot_cli.py", str(config_path)],
             check=False,
         )
-        if result.returncode == 0:
-            result = subprocess.run(
-                [sys.executable, "app/error_cli.py", str(config_path)],
-                check=False,
-            )
         if result.returncode == 0:
             next_state[config_name] = current_digest
             processed += 1

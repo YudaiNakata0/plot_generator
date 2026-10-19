@@ -20,11 +20,12 @@ import matplotlib
 
 matplotlib.use("Agg")
 from matplotlib.figure import Figure
+from matplotlib.ticker import FuncFormatter
 
 from core.loaders import npz
 from core.processing import stats as stats_processing
 from core.processing import transform as transform_processing
-from plots import REGISTRY
+from plots import REGISTRY, style
 
 
 def _parser():
@@ -144,6 +145,84 @@ def _read_config(config_path):
     return config
 
 
+def _format_trajectory_axes_mm(figure):
+    """2D軌跡の位置軸だけ、表示上の単位をmからmmに変える。
+
+    描画データや軸の範囲はmのままにし、目盛り文字列と軸ラベルだけを
+    変換する。カラーバーなど、位置軸ではないAxesには適用しない。
+    """
+    formatter = FuncFormatter(lambda value, _position: f"{value * 1000:g}")
+    for axis in figure.axes:
+        # 軌跡のAxesには必ず横軸ラベルがあり、カラーバーのAxesにはない。
+        if not axis.get_xlabel():
+            continue
+        axis.xaxis.set_major_formatter(formatter)
+        axis.yaxis.set_major_formatter(formatter)
+        xlabel = axis.get_xlabel()
+        ylabel = axis.get_ylabel()
+        if xlabel:
+            axis.set_xlabel(xlabel[:-4] + " [mm]" if xlabel.endswith(" [m]") else xlabel + " [mm]")
+        if ylabel:
+            axis.set_ylabel(ylabel[:-4] + " [mm]" if ylabel.endswith(" [m]") else ylabel + " [mm]")
+
+
+def _format_trajectory_axis_labels(figure, input_specs):
+    """座標変換後の軸ラベルだけ、元のチャンネル名で表示する。
+
+    描画には ``y'`` / ``z'`` などの変換後チャンネルを使うが、CLI出力の
+    軸ラベルは論文中の表記に合わせて ``y`` / ``z`` とする。データセットの
+    チャンネル名や統計の指定は変更しない。
+    """
+    renamed = {}
+    for spec in input_specs:
+        if not isinstance(spec, dict):
+            continue
+        transform_spec = spec.get("transform")
+        if not isinstance(transform_spec, dict):
+            continue
+        source_channels = transform_spec.get("channels")
+        suffix = transform_spec.get("suffix", "'")
+        if not isinstance(source_channels, list) or not isinstance(suffix, str):
+            continue
+        for channel in source_channels:
+            if isinstance(channel, str) and channel and suffix:
+                renamed[channel + suffix] = channel
+
+    if not renamed:
+        return
+
+    def display_label(label):
+        for transformed, original in sorted(renamed.items(), key=lambda item: -len(item[0])):
+            if label == transformed:
+                return original
+            prefix = transformed + " "
+            if label.startswith(prefix):
+                return original + label[len(transformed):]
+        return label
+
+    for axis in figure.axes:
+        xlabel = axis.get_xlabel()
+        ylabel = axis.get_ylabel()
+        if xlabel:
+            axis.set_xlabel(display_label(xlabel))
+        if ylabel:
+            axis.set_ylabel(display_label(ylabel))
+
+
+def _set_titles_times_new_roman(figure):
+    """CLI出力では図タイトルを常に Times New Roman にする。
+
+    ``style.font_kwargs`` は日本語やギリシャ文字を含む文字列に日本語
+    フォントを選ぶため、実験条件の ``θ`` を含むタイトルも日本語フォント
+    になる。CLIで論文用のタイトル書体を揃えるため、描画後にタイトルだけ
+    明示的に上書きする。
+    """
+    if figure._suptitle is not None:
+        figure._suptitle.set_fontfamily(style.FONT_FAMILY)
+    for axis in figure.axes:
+        axis.title.set_fontfamily(style.FONT_FAMILY)
+
+
 def render(config, config_path):
     """設定を読み込み、画像と指定された統計CSVを書き出す。"""
     base = config_path.parent
@@ -185,6 +264,10 @@ def render(config, config_path):
     figure = Figure(figsize=plot_type().figsize(datasets, channels, resolved))
     # draw() はGUI版と同じく未解決の入力を受け取り、自身でも解決する。
     plot_type().draw(figure, datasets, channels, params)
+    _set_titles_times_new_roman(figure)
+    if plot_name == "軌跡 (2D)":
+        _format_trajectory_axis_labels(figure, input_specs)
+        _format_trajectory_axes_mm(figure)
 
     save_options = {
         key: output[key]

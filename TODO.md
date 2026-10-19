@@ -64,7 +64,10 @@
 
 ## CLI / 一括生成
 
+- [ ] 単位表示の設計を整理する: 現在、`plot_cli.py` の2D軌跡だけが描画後の見た目として位置軸をmm表示する。将来は Dataset の単位情報と描画単位（変換係数・軸ラベル・目盛り間隔・目標値・統計値の扱い）を `PlotType` の共通仕様として定義し、GUIとCLIで同じ設定を使えるようにする
+
 - [x] `generate_plots_and_stats.sh`: JSON設定の内容を記録し、変更された設定だけプロット・統計を再生成する
+- [x] `generate_errors.sh`: プロット・統計と分離して、変更された設定だけ誤差NPZを再生成する
 - [x] `scripts/sync_experiments.py`: `experiments_description.yaml` を正本として実験情報とプロット設定を JSON に同期する
 - [x] parameters JSONから `error_r` / `error_theta` の時系列NPZを生成（`app/error_cli.py`）
 - [x] 複数実験の誤差箱ひげ図（`app/boxplot_cli.py`）
