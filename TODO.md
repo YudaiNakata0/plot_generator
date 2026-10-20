@@ -71,6 +71,7 @@
 
 - [x] `generate_plots_and_stats.sh`: JSON設定の内容を記録し、変更された設定だけプロット・統計を再生成する
 - [x] `generate_errors.sh`: プロット・統計と分離して、変更された設定だけ誤差NPZを再生成する
+- [x] 軌跡図の一括生成をSVG形式にする（既存PNGは残す）
 - [x] `scripts/sync_experiments.py`: `experiments_description.yaml` を正本として実験情報とプロット設定を JSON に同期する
 - [x] parameters JSONから `error_r` / `error_theta` の時系列NPZを生成（`app/error_cli.py`）。`error_theta` は PID の `err_p` から計算
 - [x] 複数実験の誤差箱ひげ図（`app/boxplot_cli.py`）
