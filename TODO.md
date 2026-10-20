@@ -25,9 +25,12 @@
 
 ## 手順4: 箱ひげ図、軌跡
 
-- [ ] `plots/boxplot.py`: `boxplot_rad.py`, `boxplot_orientation_quaternion.py`, `boxplot_orientation.py`, `boxplot_position_orientation.py` を 1 つに統合
+- [x] `plots/boxplot.py`: `boxplot_rad.py`, `boxplot_orientation_quaternion.py`, `boxplot_orientation.py`, `boxplot_position_orientation.py` を 1 つに統合
   - 複数 Dataset × 選択チャンネル。チャンネルごとの色、左右 2 軸（twinx）のオプション
   - 見た目は `plots/style.py` の `BOXPLOT`, `GRID_Y` を使う
+  - 横軸ラベル・横軸タイトル・左右の縦軸タイトルを設定可能
+  - 左右の縦軸タイトルと凡例を独立して設定可能
+  - 左右の縦軸の下限・上限と箱の横幅倍率を設定可能
 - [x] `plots/trajectory2d.py`: 2D 軌跡（時間で色付けした線、目標円、開始/終了マーカー、カラーバー、横軸の反転、縦横の入れ替え）。複数のデータセットは横に並べ、縮尺と時間の色の範囲を揃える
 - [x] `PlotType.channel_count` で使うチャンネル数を宣言し、数が合わないとエラーにする
 - [x] 座標変換 `core/processing/transform.py` + `gui/transform_dialog.py`: p' = R_軸(角度)·(p − 原点)。変換したチャンネル（`x'`, `y'`, `z'`）と目標値を Dataset に追加。`draw_trajectory.py` の 2D（`-a -p`）と結果が一致することを確認済み

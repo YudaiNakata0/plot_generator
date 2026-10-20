@@ -1,0 +1,25 @@
+{
+  "plot_type": "箱ひげ図",
+  "params": {
+    "start": "",
+    "end": "",
+    "left_tick": "5",
+    "right_tick": "0.01",
+    "left_min": "0.0",
+    "right_min": "0.0",
+    "left_max": "28",
+    "right_max": "",
+    "box_width": "1.8",
+    "x_labels": "-20,-10,0,10,20",
+    "x_title": "Wall angles [deg]",
+    "left_title": "Position error [mm]",
+    "right_title": "Orientation error [rad]",
+    "left_legend": "Position",
+    "right_legend": "Orientation",
+    "title": "",
+    "axis": {
+      "error_r": "left",
+      "error_theta": "right"
+    }
+  }
+}

@@ -196,10 +196,16 @@ class ParamPanel(QtWidgets.QWidget):
         if not self._channels:
             layout.addRow(QtWidgets.QLabel("（チャンネル未選択）"))
         for channel in self._channels:
-            edit = QtWidgets.QLineEdit(stored.get(channel, ""))
-            edit.setPlaceholderText("未指定")
-            if param.type is float:
-                edit.setValidator(QtGui.QDoubleValidator())
+            if param.choices:
+                edit = QtWidgets.QComboBox()
+                edit.addItems([str(choice) for choice in param.choices])
+                if stored.get(channel, ""):
+                    edit.setCurrentText(stored[channel])
+            else:
+                edit = QtWidgets.QLineEdit(stored.get(channel, ""))
+                edit.setPlaceholderText("未指定")
+                if param.type is float:
+                    edit.setValidator(QtGui.QDoubleValidator())
             layout.addRow(channel, edit)
             box.edits[channel] = edit
         return box
@@ -221,4 +227,7 @@ class ParamPanel(QtWidgets.QWidget):
                 continue
             stored = self._per_channel_values.setdefault(param.key, {})
             for channel, edit in self._widgets[param.key].edits.items():
-                stored[channel] = edit.text().strip()
+                if isinstance(edit, QtWidgets.QComboBox):
+                    stored[channel] = edit.currentText().strip()
+                else:
+                    stored[channel] = edit.text().strip()

@@ -30,11 +30,15 @@ class Param:
         if value is None or value == "":
             return None
         if self.per_channel:
-            return {
-                channel: self.type(v)
-                for channel, v in dict(value).items()
-                if v is not None and v != ""
-            }
+            converted = {}
+            for channel, item in dict(value).items():
+                if item is None or item == "":
+                    continue
+                item = self.type(item)
+                if self.choices and item not in self.choices:
+                    raise ValueError(f"{self.key}: '{item}' is not in {self.choices}")
+                converted[channel] = item
+            return converted
         if self.type is bool and isinstance(value, str):
             return value.lower() in ("1", "true", "yes", "on")
         value = self.type(value)
