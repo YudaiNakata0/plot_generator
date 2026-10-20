@@ -114,7 +114,18 @@ def error_output_exists(config_path):
         elif isinstance(setting, dict) and setting.get("path"):
             value = setting["path"]
         else:
-            value = f"../stats/errors/{config_path.stem}_errors.npz"
+            output = config.get("output")
+            if isinstance(output, str):
+                output_stem = Path(output).stem
+            elif isinstance(output, dict) and output.get("path"):
+                output_stem = Path(output["path"]).stem
+            else:
+                output_stem = config_path.stem
+            if "_trajectory_" in output_stem:
+                output_stem = output_stem.replace("_trajectory_", "_errors_", 1)
+            elif output_stem.endswith("_trajectory"):
+                output_stem = output_stem[:-len("_trajectory")]
+            value = f"../stats/errors/{output_stem}_errors.npz"
         path = Path(value).expanduser()
         if not path.is_absolute():
             path = config_path.parent / path

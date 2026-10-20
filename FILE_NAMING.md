@@ -16,6 +16,7 @@
 
 - 画像: `figures/trajectory/{stem}_trajectory_{run_id}.png`
 - 統計: `stats/{stem}_xyz_{run_id}.csv`
+- 誤差: `stats/errors/{stem}_errors_{run_id}.npz`
 
 ここで `stem` は実験条件を圧縮した名前です。
 

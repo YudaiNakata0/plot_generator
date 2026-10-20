@@ -10,4 +10,5 @@ tests/
 *.pyc
 *.spec
 .generate_plots_and_stats.json
+.generate_errors.json
 .experiment_sync.json

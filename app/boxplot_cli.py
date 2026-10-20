@@ -66,6 +66,19 @@ def _pyplot(show):
 
 
 def create_boxplot(npz_files, output=None, show=True):
+    matplotlib.rcParams.update(
+        {
+            "font.family": "Times New Roman",
+            "font.size": 36,
+            "axes.labelsize": 24,
+            "axes.titlesize": 28,
+            "figure.titlesize": 28,
+            "xtick.labelsize": 24,
+            "ytick.labelsize": 24,
+            "legend.fontsize": 20,
+        }
+    )
+
     plt = _pyplot(show)
     r_data, theta_data, labels = [], [], []
     for path in npz_files:
@@ -109,8 +122,8 @@ def create_boxplot(npz_files, output=None, show=True):
         box.set_facecolor("#f6c8b6")
     ax_r.set_xticks(xticks)
     ax_r.set_xticklabels(labels, rotation=30, ha="right")
-    ax_r.set_ylabel("Position Error r [mm]")
-    ax_theta.set_ylabel("Orientation Error θ [rad]")
+    ax_r.set_ylabel("Position Error [mm]")
+    ax_theta.set_ylabel("Orientation Error [rad]")
     ax_r.set_ylim(bottom=0)
     ax_theta.set_ylim(bottom=0)
     ax_r.grid(True, axis="y", linestyle="--", alpha=0.5)
