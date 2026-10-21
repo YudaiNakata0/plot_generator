@@ -76,6 +76,8 @@ def create_boxplot(npz_files, output=None, show=True):
             "xtick.labelsize": 24,
             "ytick.labelsize": 24,
             "legend.fontsize": 20,
+            # SVGでも文字をパスに変換せず、編集可能な <text> として保存する。
+            "svg.fonttype": "none",
         }
     )
 

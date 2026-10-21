@@ -23,6 +23,8 @@ matplotlib.rcParams.update(
         "xtick.labelsize": TICK_LABEL_SIZE,
         "ytick.labelsize": TICK_LABEL_SIZE,
         "legend.fontsize": LEGEND_FONT_SIZE,
+        # SVGでは文字をパスに変換せず、編集可能な <text> として保存する。
+        "svg.fonttype": "none",
     }
 )
 

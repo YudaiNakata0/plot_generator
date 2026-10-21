@@ -50,6 +50,9 @@ from pathlib import Path
 
 
 STATE_PATH = Path(".generate_plots_and_stats.json")
+# 出力仕様を変更したとき、設定JSONを変更しなくても一度だけ再生成する。
+# 既存の状態ファイルは path -> hash の形式を保つため、互換性も維持する。
+OUTPUT_SPEC_VERSION = "svg-text-v1"
 
 
 def load_state():
@@ -152,7 +155,7 @@ def main():
 
     for config_path in configs:
         config_name = config_path.as_posix()
-        current_digest = digest(config_path)
+        current_digest = f"{OUTPUT_SPEC_VERSION}:{digest(config_path)}"
 
         if (
             not force_rebuild
