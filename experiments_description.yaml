@@ -458,7 +458,7 @@ experiments:
       z: 1.032
     special_notes:
       - "use filament"
-    sealed: true
+    sealed: false
 
   # d = 7, theta = 0
   2026-10-04-14-40-40:
