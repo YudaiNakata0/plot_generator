@@ -195,6 +195,12 @@ class BoxPlot(PlotType):
         if params["title"]:
             fig.suptitle(params["title"], **style.font_kwargs(params["title"]))
 
+        # 書き出し時は表示中のウィンドウに対する resize/tight_layout が
+        # 走らないため、長い軸ラベルが図の外へ出ないよう余白を固定する。
+        # 特に右軸ラベル (例: "Orientation error [rad]") と、下側の
+        # x 軸ラベル (例: "Wall angles [deg]") を収めるための設定。
+        fig.subplots_adjust(left=0.16, right=0.82, bottom=0.24, top=0.90)
+
     @staticmethod
     def _validate_units(datasets, channels, axis_by_channel):
         for axis_name in ("left", "right"):
