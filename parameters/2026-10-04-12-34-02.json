@@ -12,7 +12,7 @@
     "special_notes": [
       "use filament"
     ],
-    "sealed": true
+    "sealed": false
   },
   "inputs": [
     {

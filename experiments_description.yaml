@@ -243,7 +243,8 @@ experiments:
       x: 0.400
       y: 0.278
       z: 1.020
-    special_notes: []
+    special_notes:
+      - "out of use"
     sealed: true
 
   2026-10-01-09-45-12:
@@ -257,6 +258,18 @@ experiments:
       z: 1.014
     special_notes: []
     sealed: true
+
+  2026-09-29-11-54-02:
+    target_diameter: 7
+    wall_angle: 10
+    task_start: 150
+    task_end: 190
+    target_position:
+      x: 0.396
+      y: 0.275
+      z: 1.020
+    special_notes: []
+    sealed: false
 
   # d = 7, theta = -10
   2026-09-30-11-15-16:
