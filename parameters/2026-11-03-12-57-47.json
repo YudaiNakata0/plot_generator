@@ -51,11 +51,11 @@
     }
   },
   "output": {
-    "path": "../figures/trajectory/noVS_d5_0deg_1_trajectory_2026-11-03-12-57-47.svg",
+    "path": "../figures/trajectory/noFC_d5_0deg_1_trajectory_2026-11-03-12-57-47.svg",
     "dpi": 300
   },
   "statistics": {
-    "path": "../stats/noVS_d5_0deg_1_xyz_2026-11-03-12-57-47.csv",
+    "path": "../stats/noFC_d5_0deg_1_xyz_2026-11-03-12-57-47.csv",
     "channels": [
       "x",
       "y",
