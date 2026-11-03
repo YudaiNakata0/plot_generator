@@ -121,11 +121,14 @@ def error_output_exists(config_path):
                 output_stem = Path(output["path"]).stem
             else:
                 output_stem = config_path.stem
+            # app/error_cli.py の _output_path と同じ規則で出力名を決める。
             if "_trajectory_" in output_stem:
-                output_stem = output_stem.replace("_trajectory_", "_errors_", 1)
+                filename = output_stem.replace("_trajectory_", "_errors_", 1) + ".npz"
             elif output_stem.endswith("_trajectory"):
-                output_stem = output_stem[:-len("_trajectory")]
-            value = f"../stats/errors/{output_stem}_errors.npz"
+                filename = output_stem[:-len("_trajectory")] + "_errors.npz"
+            else:
+                filename = f"{output_stem}_errors.npz"
+            value = f"../stats/errors/{filename}"
         path = Path(value).expanduser()
         if not path.is_absolute():
             path = config_path.parent / path

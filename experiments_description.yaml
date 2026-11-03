@@ -512,3 +512,30 @@ experiments:
     special_notes:
       - "use filament"
     sealed: false
+
+  # control methods validation
+  2026-11-03-12-57-47:
+    target_diameter: 5
+    wall_angle: 0
+    task_start: 175
+    task_end: 195
+    target_position:
+      x: 0.418
+      y: 0.272
+      z: 0.933
+    special_notes:
+      - "no force control"
+    sealed: false
+  
+  2026-11-03-12-30-51:
+    target_diameter: 5
+    wall_angle: 0
+    task_start: 115
+    task_end: 131001005
+    target_position:
+      x: 0.418
+      y: 0.272
+      z: 0.933
+    special_notes:
+      - "no visual servoing"
+    sealed: false

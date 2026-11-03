@@ -9,7 +9,9 @@
       "y": 0.278,
       "z": 1.02
     },
-    "special_notes": [],
+    "special_notes": [
+      "out of use"
+    ],
     "sealed": true
   },
   "inputs": [

@@ -1,0 +1,72 @@
+{
+  "experiment": {
+    "target_diameter": 5,
+    "wall_angle": 0,
+    "task_start": 175,
+    "task_end": 195,
+    "target_position": {
+      "x": 0.418,
+      "y": 0.272,
+      "z": 0.933
+    },
+    "special_notes": [
+      "no force control"
+    ],
+    "sealed": false
+  },
+  "inputs": [
+    {
+      "path": "~/rosbag/for_analysis/2026-11-03-12-57-47.bag",
+      "type": "bag",
+      "topic": "/gimbalrotor/endeffector_pose",
+      "mode": "pose",
+      "time_source": "receive",
+      "name": "2026-11-03-12-57-47"
+    }
+  ],
+  "plot": {
+    "type": "軌跡 (2D)",
+    "channels": [
+      "y",
+      "z"
+    ],
+    "params": {
+      "targets": {
+        "y": 0.272,
+        "z": 0.933
+      },
+      "use_file_target": false,
+      "diameter": 0.005,
+      "start": 175,
+      "end": 195,
+      "center": "目標",
+      "relative": true,
+      "half_range": 0.02,
+      "tick": 0.01,
+      "invert_x": true,
+      "markers": true,
+      "colorbar": false,
+      "legend": false,
+      "title": "d = 5 mm, θ = 0 deg, #1"
+    }
+  },
+  "output": {
+    "path": "../figures/trajectory/noVS_d5_0deg_1_trajectory_2026-11-03-12-57-47.svg",
+    "dpi": 300
+  },
+  "statistics": {
+    "path": "../stats/noVS_d5_0deg_1_xyz_2026-11-03-12-57-47.csv",
+    "channels": [
+      "x",
+      "y",
+      "z"
+    ],
+    "params": {
+      "targets": {
+        "x": 0.418,
+        "y": 0.272,
+        "z": 0.933
+      }
+    }
+  }
+}
